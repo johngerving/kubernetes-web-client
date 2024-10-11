@@ -1,30 +1,69 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/johngerving/kubernetes-web-client/backend/api/config"
+	"github.com/johngerving/kubernetes-web-client/backend/api/handlers"
 )
 
 func main() {
-	cfg, err := NewConfigFromEnv()
+	err := config.NewConfigFromEnv()
 	if err != nil {
 		log.Fatalf("Error loading config: %v\n", err)
 	}
 
-	if cfg.env == "production" {
+	if config.AppConfig.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
 		gin.SetMode(gin.DebugMode)
 	}
 
-	router := gin.Default()
-	router.GET("/ping", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "pong",
-		})
-	})
+	// Create context that listens for interrupt signal from OS
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-	router.Run()
+	// Create a Gin router
+	router := gin.Default()
+	router.GET("/auth", handlers.AuthHandler)
+	router.GET("/auth/callback", handlers.AuthCallbackHandler)
+
+	// Create an HTTP server listening on the port provided in environment variables
+	// using the router we defined
+	srv := &http.Server{
+		Addr:    fmt.Sprintf(":%d", config.AppConfig.Port),
+		Handler: router,
+	}
+
+	// Initialize the server in a goroutine so that
+	// it won't block the graceful shutdown handling below
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalf("listen: %s\n", err)
+		}
+	}()
+
+	// Listen for interrupt signal
+	<-ctx.Done()
+
+	// Restore default behavior on the interrupt signal and notify user of shutdown
+	stop()
+	log.Println("Shutting down server gracefully")
+
+	// Context is used to inform the server it has 5 seconds to finish
+	// the request it is currently handling
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatal("Server forced to shutdown: ", err)
+	}
+
+	log.Println("Server exiting")
 }
