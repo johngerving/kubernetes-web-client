@@ -58,7 +58,9 @@ func AuthCallbackHandler(c *gin.Context) {
 		return
 	}
 
-	fmt.Printf("userinfo: %s\n", data)
+	fmt.Println(string(data))
+	// Redirect to app URL
+	c.Redirect(http.StatusPermanentRedirect, config.AppConfig.AppUrl)
 }
 
 func getUserData(code string) ([]byte, error) {

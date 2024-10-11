@@ -15,6 +15,7 @@ type config struct {
 	Env         string
 	Port        int
 	ApiUrl      string
+	AppUrl      string
 	Domain      string
 	OAuthUrl    string
 	OAuthConfig oauth2.Config
@@ -61,6 +62,11 @@ func NewConfigFromEnv() error {
 		log.Fatalf("Error: API URL must be specified")
 	}
 
+	appUrl := os.Getenv("APP_URL")
+	if appUrl == "" {
+		log.Fatalf("Error: App URL must be specified")
+	}
+
 	domain := os.Getenv("DOMAIN")
 	if domain == "" {
 		log.Fatalf("Error: Domain must be specified")
@@ -91,6 +97,7 @@ func NewConfigFromEnv() error {
 		Env:         env,
 		Port:        port,
 		ApiUrl:      apiUrl,
+		AppUrl:      appUrl,
 		Domain:      domain,
 		OAuthUrl:    oauthUrl,
 		OAuthConfig: oauthConfig,
