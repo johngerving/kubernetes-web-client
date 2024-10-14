@@ -1,14 +1,15 @@
 package config
 
 import (
+	"context"
 	"log"
 	"os"
 	"strconv"
 	"strings"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/joho/godotenv"
 	"golang.org/x/oauth2"
-	"golang.org/x/oauth2/google"
 )
 
 type config struct {
@@ -19,6 +20,7 @@ type config struct {
 	Domain      string
 	OAuthUrl    string
 	OAuthConfig oauth2.Config
+	Provider    *oidc.Provider
 }
 
 var AppConfig config
@@ -72,24 +74,29 @@ func NewConfigFromEnv() error {
 		log.Fatalf("Error: Domain must be specified")
 	}
 
-	oauthUrl := os.Getenv("OAUTH_URL")
-	if oauthUrl == "" {
-		log.Fatalf("Error: OAuth URL must be specified")
-	}
-
 	oauthCallbackUrl := os.Getenv("OAUTH_CALLBACK_URL")
 	if oauthCallbackUrl == "" {
 		log.Fatalf("Error: OAuth callback URL must be specified")
 	}
 
-	// Create OAuth config from provided variables
+	issuer := os.Getenv("ISSUER")
+	if issuer == "" {
+		log.Fatalf("Error: Issuer URL must be specified")
+	}
+
+	// Create OIDC provider
+	provider, err := oidc.NewProvider(context.Background(), issuer)
+	if err != nil {
+		log.Fatalf("Error creating OIDC provider")
+	}
+
+	// Create OpenID Connect aware OAuth config from provided variables
 	oauthConfig := oauth2.Config{
 		RedirectURL:  oauthCallbackUrl,
 		ClientID:     oauthClientId,
 		ClientSecret: oauthClientSecret,
-		Scopes: []string{"https://www.googleapis.com/auth/userinfo.email",
-			"https://www.googleapis.com/auth/userinfo.profile"},
-		Endpoint: google.Endpoint,
+		Scopes:       []string{oidc.ScopeOpenID, "email"}, // "openid" is a required scope for OpenID Connect flows
+		Endpoint:     provider.Endpoint(),
 	}
 
 	// Create AppConfig, including the oauthConfig
@@ -99,8 +106,8 @@ func NewConfigFromEnv() error {
 		ApiUrl:      apiUrl,
 		AppUrl:      appUrl,
 		Domain:      domain,
-		OAuthUrl:    oauthUrl,
 		OAuthConfig: oauthConfig,
+		Provider:    provider,
 	}
 
 	return nil

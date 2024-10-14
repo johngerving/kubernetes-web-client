@@ -5,10 +5,10 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 
+	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
 	"github.com/johngerving/kubernetes-web-client/backend/api/config"
 )
@@ -25,7 +25,7 @@ func AuthHandler(c *gin.Context) {
 	url := config.AppConfig.OAuthConfig.AuthCodeURL(oauthState)
 
 	// Redirect to the OAuth page
-	c.Redirect(http.StatusTemporaryRedirect, url)
+	c.Redirect(http.StatusFound, url)
 }
 
 // generateOauthState generates a random string 16 bytes long
@@ -40,6 +40,7 @@ func generateOauthState() string {
 }
 
 func AuthCallbackHandler(c *gin.Context) {
+	verifier := config.AppConfig.Provider.Verifier(&oidc.Config{ClientID: config.AppConfig.OAuthConfig.ClientID})
 	// Read oauthState from cookie
 	oauthState, _ := c.Cookie("oauthstate")
 
@@ -50,37 +51,40 @@ func AuthCallbackHandler(c *gin.Context) {
 		return
 	}
 
-	// Get the user data, redirect if error occurred
-	data, err := getUserData(c.Request.FormValue("code"))
+	oauth2Token, err := config.AppConfig.OAuthConfig.Exchange(context.Background(), c.Request.URL.Query().Get("code"))
 	if err != nil {
-		log.Println(err.Error())
+		log.Println("error retrieving OAuth code")
 		c.Redirect(http.StatusTemporaryRedirect, "/auth")
 		return
 	}
 
-	fmt.Println(string(data))
+	// Extract ID token from OAuth token
+	rawIDToken, ok := oauth2Token.Extra("id_token").(string)
+	if !ok {
+		log.Println("error extracting OAuth ID token")
+		c.Redirect(http.StatusTemporaryRedirect, "/auth")
+		return
+	}
+
+	// Parse and verify ID Token payload
+	idToken, err := verifier.Verify(context.Background(), rawIDToken)
+	if err != nil {
+		log.Println("error parsing ID token payload")
+		c.Redirect(http.StatusTemporaryRedirect, "/auth")
+		return
+	}
+
+	// Extract custom claims
+	var claims struct {
+		Email string `json:"email"`
+	}
+	if err := idToken.Claims(&claims); err != nil {
+		log.Println("error extracting OIDC claims")
+		c.Redirect(http.StatusTemporaryRedirect, "/auth")
+		return
+	}
+
+	fmt.Println(claims)
 	// Redirect to app URL
 	c.Redirect(http.StatusPermanentRedirect, config.AppConfig.AppUrl)
-}
-
-func getUserData(code string) ([]byte, error) {
-	// Get access token from OAuth Exchange
-	token, err := config.AppConfig.OAuthConfig.Exchange(context.Background(), code)
-	if err != nil {
-		return nil, fmt.Errorf("code exchange wrong: %s", err.Error())
-	}
-
-	// Get userinfo with access token
-	response, err := http.Get(config.AppConfig.OAuthUrl + "/userinfo?access_token=" + token.AccessToken)
-	if err != nil {
-		return nil, fmt.Errorf("failed getting user info: %s", err.Error())
-	}
-	defer response.Body.Close()
-
-	// Read response and return it
-	contents, err := io.ReadAll(response.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed read response: %s", err.Error())
-	}
-	return contents, nil
 }
