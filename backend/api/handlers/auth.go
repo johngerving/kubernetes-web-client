@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -84,7 +83,6 @@ func AuthCallbackHandler(c *gin.Context) {
 		return
 	}
 
-	fmt.Println(claims)
 	// Redirect to app URL
 	c.Redirect(http.StatusPermanentRedirect, config.AppConfig.AppUrl)
 }
