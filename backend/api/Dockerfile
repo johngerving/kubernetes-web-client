@@ -1,7 +1,7 @@
 FROM golang:1.23
 
 WORKDIR /app
-ADD ./backend/api .
+ADD . .
 
 ENV CGO_ENABLED=0
 ENV GOOS=linux

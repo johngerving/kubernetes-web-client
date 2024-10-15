@@ -8,7 +8,7 @@ import (
 	"strings"
 
 	"github.com/coreos/go-oidc/v3/oidc"
-	"github.com/joho/godotenv"
+	_ "github.com/joho/godotenv/autoload"
 	"golang.org/x/oauth2"
 )
 
@@ -26,12 +26,7 @@ type config struct {
 var AppConfig config
 
 func NewConfigFromEnv() error {
-	// Load environment variables from '.env' file
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-
+	// Load environment variables
 	env := os.Getenv("ENV")
 	if strings.ToLower(env) != "production" {
 		env = "development"
@@ -39,6 +34,7 @@ func NewConfigFromEnv() error {
 
 	portString := os.Getenv("PORT")
 	var port int
+	var err error
 	if portString == "" {
 		port = 8080
 	} else {
