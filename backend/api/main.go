@@ -32,6 +32,7 @@ func main() {
 
 	// Create a Gin router
 	router := gin.Default()
+
 	router.GET("/auth", handlers.AuthHandler)
 	router.GET("/auth/callback", handlers.AuthCallbackHandler)
 

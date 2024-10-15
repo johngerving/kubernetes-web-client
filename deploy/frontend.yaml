@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: web-client/frontend
+        resources:
+          limits:
+            memory: 1Gi
+            cpu: 1
+        ports:
+        - containerPort: 3000
+        env:
+        - name: PUBLIC_API_URL
+          valueFrom:
+            secretKeyRef:
+              name: frontend-secret
+              key: PUBLIC_API_URL

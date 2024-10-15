@@ -13,10 +13,56 @@ spec:
     spec:
       containers:
       - name: api
-        image: web-client-api
+        image: web-client/api
         resources:
           limits:
             memory: 1Gi
             cpu: 1
         ports:
         - containerPort: 8090
+        env:
+        - name: ENV
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: ENV
+        - name: PORT
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: PORT
+        - name: OAUTH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: OAUTH_CLIENT_ID
+        - name: OAUTH_CLIENT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: OAUTH_CLIENT_SECRET
+        - name: OAUTH_CALLBACK_URL
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: OAUTH_CALLBACK_URL
+        - name: ISSUER
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: ISSUER
+        - name: API_URL
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: API_URL
+        - name: DOMAIN
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: DOMAIN
+        - name: APP_URL
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: APP_URL
