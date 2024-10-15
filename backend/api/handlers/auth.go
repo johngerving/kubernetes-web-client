@@ -9,19 +9,18 @@ import (
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
-	"github.com/johngerving/kubernetes-web-client/backend/api/config"
 )
 
-func AuthHandler(c *gin.Context) {
+func (h *Handler) AuthHandler(c *gin.Context) {
 	// Create oauthState cookie
 	oauthState := generateOauthState()
 
 	maxAge := 60 * 60 * 24 * 365 // Set max age to a year
 	// Set OAuth state cookie with random value and max age that is valid on all paths of the API domain, HTTP only, and secure
-	c.SetCookie("oauthstate", oauthState, maxAge, "/", config.AppConfig.Domain, true, true)
+	c.SetCookie("oauthstate", oauthState, maxAge, "/", h.appConfig.Domain, true, true)
 
 	// Create auth code URL with the OAuth state
-	url := config.AppConfig.OAuthConfig.AuthCodeURL(oauthState)
+	url := h.appConfig.OAuthConfig.AuthCodeURL(oauthState)
 
 	// Redirect to the OAuth page
 	c.Redirect(http.StatusFound, url)
@@ -38,8 +37,8 @@ func generateOauthState() string {
 	return base64.URLEncoding.EncodeToString(b)
 }
 
-func AuthCallbackHandler(c *gin.Context) {
-	verifier := config.AppConfig.Provider.Verifier(&oidc.Config{ClientID: config.AppConfig.OAuthConfig.ClientID})
+func (h *Handler) AuthCallbackHandler(c *gin.Context) {
+	verifier := h.appConfig.Provider.Verifier(&oidc.Config{ClientID: h.appConfig.OAuthConfig.ClientID})
 	// Read oauthState from cookie
 	oauthState, _ := c.Cookie("oauthstate")
 
@@ -50,7 +49,7 @@ func AuthCallbackHandler(c *gin.Context) {
 		return
 	}
 
-	oauth2Token, err := config.AppConfig.OAuthConfig.Exchange(context.Background(), c.Request.URL.Query().Get("code"))
+	oauth2Token, err := h.appConfig.OAuthConfig.Exchange(context.Background(), c.Request.URL.Query().Get("code"))
 	if err != nil {
 		log.Println("error retrieving OAuth code")
 		c.Redirect(http.StatusTemporaryRedirect, "/auth")
@@ -84,5 +83,5 @@ func AuthCallbackHandler(c *gin.Context) {
 	}
 
 	// Redirect to app URL
-	c.Redirect(http.StatusPermanentRedirect, config.AppConfig.AppUrl)
+	c.Redirect(http.StatusPermanentRedirect, h.appConfig.AppUrl)
 }

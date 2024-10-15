@@ -12,7 +12,7 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type config struct {
+type Config struct {
 	Env         string
 	Port        int
 	ApiUrl      string
@@ -23,9 +23,10 @@ type config struct {
 	Provider    *oidc.Provider
 }
 
-var AppConfig config
-
-func NewConfigFromEnv() error {
+// NewConfigFromEnv reads in environment variables and returns
+// a Config struct instance. If an environment variable is not found,
+// an error occurs.
+func NewConfigFromEnv() (Config, error) {
 	// Load environment variables
 	env := os.Getenv("ENV")
 	if strings.ToLower(env) != "production" {
@@ -95,8 +96,8 @@ func NewConfigFromEnv() error {
 		Endpoint:     provider.Endpoint(),
 	}
 
-	// Create AppConfig, including the oauthConfig
-	AppConfig = config{
+	// Create config, including the oauthConfig
+	cfg := Config{
 		Env:         env,
 		Port:        port,
 		ApiUrl:      apiUrl,
@@ -106,5 +107,5 @@ func NewConfigFromEnv() error {
 		Provider:    provider,
 	}
 
-	return nil
+	return cfg, nil
 }

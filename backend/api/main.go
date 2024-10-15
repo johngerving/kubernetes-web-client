@@ -15,12 +15,12 @@ import (
 )
 
 func main() {
-	err := config.NewConfigFromEnv()
+	appConfig, err := config.NewConfigFromEnv()
 	if err != nil {
 		log.Fatalf("Error loading config: %v\n", err)
 	}
 
-	if config.AppConfig.Env == "production" {
+	if appConfig.Env == "production" {
 		gin.SetMode(gin.ReleaseMode)
 	} else {
 		gin.SetMode(gin.DebugMode)
@@ -33,13 +33,15 @@ func main() {
 	// Create a Gin router
 	router := gin.Default()
 
-	router.GET("/auth", handlers.AuthHandler)
-	router.GET("/auth/callback", handlers.AuthCallbackHandler)
+	h := handlers.NewHandler(appConfig)
+
+	router.GET("/auth", h.AuthHandler)
+	router.GET("/auth/callback", h.AuthCallbackHandler)
 
 	// Create an HTTP server listening on the port provided in environment variables
 	// using the router we defined
 	srv := &http.Server{
-		Addr:    fmt.Sprintf(":%d", config.AppConfig.Port),
+		Addr:    fmt.Sprintf(":%d", appConfig.Port),
 		Handler: router,
 	}
 
