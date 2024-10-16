@@ -1,3 +1,6 @@
 package session
 
-// import "github.com/wader/gormstore/v2"
+// NewStore takes a
+// func NewStore(config config.Config) (*gormstore.Store, error) {
+// 	store := gormstore.New(postgres.Open())
+// }

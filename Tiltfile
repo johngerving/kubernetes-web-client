@@ -13,11 +13,14 @@ secret_create_generic('frontend-secret', from_env_file='frontend/.env')
 docker_build('web-client/api', 'backend/api', dockerfile='backend/api/Dockerfile')
 docker_build('web-client/frontend', 'frontend', dockerfile='frontend/Dockerfile')
 
-helm_resource('postgresql', 'bitnami/postgresql', resource_deps=['bitnami'])
 k8s_yaml('deploy/api.yaml')
 k8s_yaml('deploy/frontend.yaml')
 # k8s_yaml('deploy/api-svc.yaml')
 
-k8s_resource('api', port_forwards=8090)
-k8s_resource('frontend', port_forwards=3000)
+k8s_resource(new_name='backend-secret', objects=['backend-secret'])
+k8s_resource(new_name='frontend-secret', objects=['frontend-secret'])
+
+helm_resource('postgresql', 'bitnami/postgresql', resource_deps=['bitnami'], port_forwards="5432:5432")
+k8s_resource('api', resource_deps=['backend-secret', 'postgresql'], port_forwards=8090)
+k8s_resource('frontend', resource_deps=['frontend-secret'], port_forwards=3000)
 # k8s_resource(new_name='api-svc', objects=['api-svc'], resource_deps=['api'])

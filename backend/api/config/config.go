@@ -12,15 +12,25 @@ import (
 	"golang.org/x/oauth2"
 )
 
+// App config struct
 type Config struct {
 	Env         string
 	Port        int
 	ApiUrl      string
 	AppUrl      string
 	Domain      string
-	OAuthUrl    string
 	OAuthConfig oauth2.Config
 	Provider    *oidc.Provider
+	DBUrl       string
+}
+
+// DB config struct
+type DBConfig struct {
+	Host     string
+	User     string
+	Password string
+	Name     string
+	Port     string
 }
 
 // NewConfigFromEnv reads in environment variables and returns
@@ -81,6 +91,11 @@ func NewConfigFromEnv() (Config, error) {
 		log.Fatalf("Error: Issuer URL must be specified")
 	}
 
+	dbUrl := os.Getenv("DB_URL")
+	if dbUrl == "" {
+		log.Fatalf("Error: Database URL must be specified")
+	}
+
 	// Create OIDC provider
 	provider, err := oidc.NewProvider(context.Background(), issuer)
 	if err != nil {
@@ -105,6 +120,7 @@ func NewConfigFromEnv() (Config, error) {
 		Domain:      domain,
 		OAuthConfig: oauthConfig,
 		Provider:    provider,
+		DBUrl:       dbUrl,
 	}
 
 	return cfg, nil

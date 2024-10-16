@@ -10,7 +10,9 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5"
 	"github.com/johngerving/kubernetes-web-client/backend/api/config"
+	"github.com/johngerving/kubernetes-web-client/backend/api/database/db"
 	"github.com/johngerving/kubernetes-web-client/backend/api/handlers"
 )
 
@@ -32,6 +34,21 @@ func main() {
 
 	// Create a Gin router
 	router := gin.Default()
+
+	// Initialize database connection
+	conn, err := pgx.Connect(context.Background(), appConfig.DBUrl)
+	if err != nil {
+		log.Fatalf("Failed to initialize database connection: %v", err)
+	}
+	defer conn.Close(context.Background())
+
+	queries := db.New(conn)
+
+	users, err := queries.ListUsers(context.Background())
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println(users)
 
 	h := handlers.NewHandler(appConfig)
 
