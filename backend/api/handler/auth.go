@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"context"
@@ -11,16 +11,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func (h *Handler) AuthHandler(c *gin.Context) {
+func (h *Handler) Auth(c *gin.Context) {
 	// Create oauthState cookie
 	oauthState := generateOauthState()
 
 	maxAge := 60 * 60 * 24 * 365 // Set max age to a year
 	// Set OAuth state cookie with random value and max age that is valid on all paths of the API domain, HTTP only, and secure
-	c.SetCookie("oauthstate", oauthState, maxAge, "/", h.appConfig.Domain, true, true)
+	c.SetCookie("oauthstate", oauthState, maxAge, "/", h.AppConfig.Domain, true, true)
 
 	// Create auth code URL with the OAuth state
-	url := h.appConfig.OAuthConfig.AuthCodeURL(oauthState)
+	url := h.AppConfig.OAuthConfig.AuthCodeURL(oauthState)
 
 	// Redirect to the OAuth page
 	c.Redirect(http.StatusFound, url)
@@ -37,8 +37,8 @@ func generateOauthState() string {
 	return base64.URLEncoding.EncodeToString(b)
 }
 
-func (h *Handler) AuthCallbackHandler(c *gin.Context) {
-	verifier := h.appConfig.Provider.Verifier(&oidc.Config{ClientID: h.appConfig.OAuthConfig.ClientID})
+func (h *Handler) AuthCallback(c *gin.Context) {
+	verifier := h.AppConfig.Provider.Verifier(&oidc.Config{ClientID: h.AppConfig.OAuthConfig.ClientID})
 	// Read oauthState from cookie
 	oauthState, _ := c.Cookie("oauthstate")
 
@@ -49,7 +49,7 @@ func (h *Handler) AuthCallbackHandler(c *gin.Context) {
 		return
 	}
 
-	oauth2Token, err := h.appConfig.OAuthConfig.Exchange(context.Background(), c.Request.URL.Query().Get("code"))
+	oauth2Token, err := h.AppConfig.OAuthConfig.Exchange(context.Background(), c.Request.URL.Query().Get("code"))
 	if err != nil {
 		log.Println("error retrieving OAuth code")
 		c.Redirect(http.StatusTemporaryRedirect, "/auth")
@@ -73,15 +73,16 @@ func (h *Handler) AuthCallbackHandler(c *gin.Context) {
 	}
 
 	// Extract custom claims
-	var claims struct {
-		Email string `json:"email"`
-	}
-	if err := idToken.Claims(&claims); err != nil {
+	var user user
+	if err := idToken.Claims(&user); err != nil {
 		log.Println("error extracting OIDC claims")
 		c.Redirect(http.StatusTemporaryRedirect, "/auth")
 		return
 	}
 
+	// Create a new session to store the user information
+	h.SessionManager.Put(c.Request.Context(), "user", user.Email)
+
 	// Redirect to app URL
-	c.Redirect(http.StatusPermanentRedirect, h.appConfig.AppUrl)
+	c.Redirect(http.StatusPermanentRedirect, h.AppConfig.AppUrl)
 }

@@ -10,10 +10,11 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/johngerving/kubernetes-web-client/backend/api/config"
 	"github.com/johngerving/kubernetes-web-client/backend/api/database/db"
-	"github.com/johngerving/kubernetes-web-client/backend/api/handlers"
+	"github.com/johngerving/kubernetes-web-client/backend/api/handler"
+	"github.com/johngerving/kubernetes-web-client/backend/api/session"
 )
 
 func main() {
@@ -36,30 +37,27 @@ func main() {
 	router := gin.Default()
 
 	// Initialize database connection
-	conn, err := pgx.Connect(context.Background(), appConfig.DBUrl)
+	pool, err := pgxpool.New(context.Background(), appConfig.DBUrl)
 	if err != nil {
 		log.Fatalf("Failed to initialize database connection: %v", err)
 	}
-	defer conn.Close(context.Background())
+	defer pool.Close() // Close connection when done
 
-	queries := db.New(conn)
+	sessionManager := session.NewStore(pool)
+	queries := db.New(pool)
+	fmt.Println(queries)
 
-	users, err := queries.ListUsers(context.Background())
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println(users)
+	h := handler.NewHandler(appConfig, sessionManager)
 
-	h := handlers.NewHandler(appConfig)
-
-	router.GET("/auth", h.AuthHandler)
-	router.GET("/auth/callback", h.AuthCallbackHandler)
+	router.GET("/auth", h.Auth)
+	router.GET("/auth/callback", h.AuthCallback)
+	router.GET("/user", h.User)
 
 	// Create an HTTP server listening on the port provided in environment variables
 	// using the router we defined
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%d", appConfig.Port),
-		Handler: router,
+		Handler: sessionManager.LoadAndSave(router),
 	}
 
 	// Initialize the server in a goroutine so that
