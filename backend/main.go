@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/config"
-	"github.com/johngerving/kubernetes-web-client/backend/pkg/database/db"
+	"github.com/johngerving/kubernetes-web-client/backend/pkg/database/repository"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/handler"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/session"
 )
@@ -44,10 +44,9 @@ func main() {
 	defer pool.Close() // Close connection when done
 
 	sessionManager := session.NewStore(pool)
-	queries := db.New(pool)
-	fmt.Println(queries)
+	repository := repository.New(pool)
 
-	h := handler.NewHandler(appConfig, sessionManager)
+	h := handler.NewHandler(appConfig, sessionManager, repository)
 
 	router.GET("/auth", h.Auth)
 	router.GET("/auth/callback", h.AuthCallback)

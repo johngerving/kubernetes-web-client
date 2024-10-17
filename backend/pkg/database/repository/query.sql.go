@@ -3,11 +3,31 @@
 //   sqlc v1.27.0
 // source: query.sql
 
-package db
+package repository
 
 import (
 	"context"
 )
+
+const createUser = `-- name: CreateUser :exec
+INSERT INTO users (email) VALUES ($1)
+`
+
+func (q *Queries) CreateUser(ctx context.Context, email string) error {
+	_, err := q.db.Exec(ctx, createUser, email)
+	return err
+}
+
+const findUserWithEmail = `-- name: FindUserWithEmail :one
+SELECT id, email FROM users WHERE email = $1
+`
+
+func (q *Queries) FindUserWithEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRow(ctx, findUserWithEmail, email)
+	var i User
+	err := row.Scan(&i.ID, &i.Email)
+	return i, err
+}
 
 const listUsers = `-- name: ListUsers :many
 SELECT id, email FROM users
