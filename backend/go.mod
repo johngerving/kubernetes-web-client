@@ -1,4 +1,4 @@
-module github.com/johngerving/kubernetes-web-client/backend/api
+module github.com/johngerving/kubernetes-web-client/backend
 
 go 1.23.0
 

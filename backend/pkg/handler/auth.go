@@ -81,7 +81,7 @@ func (h *Handler) AuthCallback(c *gin.Context) {
 	}
 
 	// Create a new session to store the user information
-	h.SessionManager.Put(c.Request.Context(), "user", user.Email)
+	h.SessionManager.Put(c.Request.Context(), "email", user.Email)
 
 	// Redirect to app URL
 	c.Redirect(http.StatusPermanentRedirect, h.AppConfig.AppUrl)

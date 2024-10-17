@@ -8,4 +8,4 @@ ENV GOOS=linux
 ENV GOARCH=amd64
 
 RUN go build
-ENTRYPOINT ./api
+ENTRYPOINT ./backend

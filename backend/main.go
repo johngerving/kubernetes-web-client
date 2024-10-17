@@ -11,10 +11,10 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/johngerving/kubernetes-web-client/backend/api/config"
-	"github.com/johngerving/kubernetes-web-client/backend/api/database/db"
-	"github.com/johngerving/kubernetes-web-client/backend/api/handler"
-	"github.com/johngerving/kubernetes-web-client/backend/api/session"
+	"github.com/johngerving/kubernetes-web-client/backend/pkg/config"
+	"github.com/johngerving/kubernetes-web-client/backend/pkg/database/db"
+	"github.com/johngerving/kubernetes-web-client/backend/pkg/handler"
+	"github.com/johngerving/kubernetes-web-client/backend/pkg/session"
 )
 
 func main() {

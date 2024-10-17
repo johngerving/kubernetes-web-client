@@ -2,7 +2,7 @@ package handler
 
 import (
 	"github.com/alexedwards/scs/v2"
-	"github.com/johngerving/kubernetes-web-client/backend/api/config"
+	"github.com/johngerving/kubernetes-web-client/backend/pkg/config"
 )
 
 // Struct to hold app information - config, stores, etc.
