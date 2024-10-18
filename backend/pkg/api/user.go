@@ -1,4 +1,4 @@
-package handler
+package api
 
 import (
 	"net/http"
@@ -10,9 +10,10 @@ type user struct {
 	Email string `json:"email"`
 }
 
-func (h *Handler) User(c *gin.Context) {
+// userHandler gets the information of the user based on their session.
+func (s *Server) userHandler(c *gin.Context) {
 	// Get user data from the session
-	email := h.SessionManager.GetString(c.Request.Context(), "email")
+	email := s.sessionStore.GetString(c.Request.Context(), "email")
 
 	// If found in the session, return the user data
 	if email != "" {

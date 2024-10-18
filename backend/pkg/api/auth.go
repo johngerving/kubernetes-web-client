@@ -1,4 +1,4 @@
-package handler
+package api
 
 import (
 	"context"
@@ -14,15 +14,16 @@ import (
 
 var maxOauthStateCookieAge int = 60 * 60 * 24 * 365 // Set max age for OAuth state to a year
 
-func (h *Handler) Auth(c *gin.Context) {
+// authHandler initiates the OAuth flow
+func (s *Server) authHandler(c *gin.Context) {
 	// Create oauthState cookie
 	oauthState := generateOauthState()
 
 	// Set OAuth state cookie with random value and max age that is valid on all paths of the API domain, HTTP only, and secure
-	c.SetCookie("oauthstate", oauthState, maxOauthStateCookieAge, "/", h.AppConfig.Domain, true, true)
+	c.SetCookie("oauthstate", oauthState, maxOauthStateCookieAge, "/", s.config.Domain, true, true)
 
 	// Create auth code URL with the OAuth state
-	url := h.AppConfig.OAuthConfig.AuthCodeURL(oauthState)
+	url := s.oauth.AuthCodeURL(oauthState)
 
 	// Redirect to the OAuth page
 	c.Redirect(http.StatusFound, url)
@@ -39,12 +40,14 @@ func generateOauthState() string {
 	return base64.URLEncoding.EncodeToString(b)
 }
 
-func (h *Handler) AuthCallback(c *gin.Context) {
-	verifier := h.AppConfig.Provider.Verifier(&oidc.Config{ClientID: h.AppConfig.OAuthConfig.ClientID})
+// authCallbackHandler receives OAuth state and retrieves user information,
+// redirecting to the frontend URL when authenticated.
+func (s *Server) authCallbackHandler(c *gin.Context) {
+	verifier := s.provider.Verifier(&oidc.Config{ClientID: s.oauth.ClientID})
 	// Read oauthState from cookie
 	oauthState, _ := c.Cookie("oauthstate")
 	// Clear the OAuth cookie no matter what
-	c.SetCookie("oauthstate", "", maxOauthStateCookieAge, "/", h.AppConfig.Domain, true, true)
+	c.SetCookie("oauthstate", "", maxOauthStateCookieAge, "/", s.config.Domain, true, true)
 
 	// Redirect if state is invalid
 	if c.Request.FormValue("state") != oauthState {
@@ -53,7 +56,7 @@ func (h *Handler) AuthCallback(c *gin.Context) {
 		return
 	}
 
-	oauth2Token, err := h.AppConfig.OAuthConfig.Exchange(context.Background(), c.Request.URL.Query().Get("code"))
+	oauth2Token, err := s.oauth.Exchange(context.Background(), c.Request.URL.Query().Get("code"))
 	if err != nil {
 		log.Printf("error retrieving OAuth code: %v", err)
 		c.Redirect(http.StatusTemporaryRedirect, "/auth")
@@ -85,11 +88,11 @@ func (h *Handler) AuthCallback(c *gin.Context) {
 	}
 
 	// Check if user already exists in database
-	user, err := h.Repository.FindUserWithEmail(context.Background(), claims.Email)
+	user, err := s.repository.FindUserWithEmail(context.Background(), claims.Email)
 
 	if err == pgx.ErrNoRows {
 		// If the user isn't in the database, add them
-		err = h.Repository.CreateUser(context.Background(), claims.Email)
+		err = s.repository.CreateUser(context.Background(), claims.Email)
 		if err != nil {
 			log.Printf("error adding user to database: %v", err)
 			c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "unable to add user to database"})
@@ -103,8 +106,8 @@ func (h *Handler) AuthCallback(c *gin.Context) {
 	}
 
 	// Create a new session to store the user information
-	h.SessionManager.Put(c.Request.Context(), "email", user.Email)
+	s.sessionStore.Put(c.Request.Context(), "email", user.Email)
 
 	// Redirect to app URL
-	c.Redirect(http.StatusPermanentRedirect, h.AppConfig.AppUrl)
+	c.Redirect(http.StatusPermanentRedirect, s.config.FrontendURL)
 }
