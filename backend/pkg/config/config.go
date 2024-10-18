@@ -22,21 +22,21 @@ type Config struct {
 	OAuthConfig oauth2.Config
 	Provider    *oidc.Provider
 	DBUrl       string
+	KubeConfig  KubeConfig
 }
 
-// DB config struct
-type DBConfig struct {
-	Host     string
-	User     string
-	Password string
-	Name     string
-	Port     string
+type KubeConfig struct {
+	Host      string
+	Port      string
+	Token     string
+	Cert      string
+	Namespace string
 }
 
 // NewConfigFromEnv reads in environment variables and returns
 // a Config struct instance. If an environment variable is not found,
 // an error occurs.
-func NewConfigFromEnv() (Config, error) {
+func NewConfigFromEnv() (*Config, error) {
 	// Load environment variables
 	env := os.Getenv("ENV")
 	if strings.ToLower(env) != "production" {
@@ -96,6 +96,39 @@ func NewConfigFromEnv() (Config, error) {
 		log.Fatalf("Error: Database URL must be specified")
 	}
 
+	kubeHost := os.Getenv("KUBERNETES_SERVICE_HOST")
+	if kubeHost == "" {
+		log.Fatalf("Error retrieving Kubernetes service host")
+	}
+
+	kubePort := os.Getenv("KUBERNETES_SERVICE_PORT_HTTPS")
+	if kubePort == "" {
+		log.Fatalf("Error retrieving Kubernetes service port")
+	}
+
+	kubeToken := os.Getenv("KUBE_TOKEN")
+	if kubeToken == "" {
+		log.Fatalf("Error: Kubernetes token must be specified")
+	}
+
+	kubeCert := os.Getenv("KUBE_CERT")
+	if kubeCert == "" {
+		log.Fatalf("Error: Kubernetes CA cert must be specified")
+	}
+
+	namespace := os.Getenv("POD_NAMESPACE")
+	if namespace == "" {
+		log.Fatalf("Error getting pod namespace")
+	}
+
+	kubeConfig := KubeConfig{
+		Host:      kubeHost,
+		Port:      kubePort,
+		Token:     kubeToken,
+		Cert:      kubeCert,
+		Namespace: namespace,
+	}
+
 	// Create OIDC provider
 	provider, err := oidc.NewProvider(context.Background(), issuer)
 	if err != nil {
@@ -121,7 +154,8 @@ func NewConfigFromEnv() (Config, error) {
 		OAuthConfig: oauthConfig,
 		Provider:    provider,
 		DBUrl:       dbUrl,
+		KubeConfig:  kubeConfig,
 	}
 
-	return cfg, nil
+	return &cfg, nil
 }

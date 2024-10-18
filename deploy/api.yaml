@@ -71,3 +71,17 @@ spec:
             secretKeyRef:
               name: backend-secret
               key: DB_URL
+        - name: KUBE_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: KUBE_TOKEN
+        - name: KUBE_CERT
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: KUBE_CERT
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace

@@ -14,11 +14,13 @@ import (
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/config"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/database/repository"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/handler"
+	"github.com/johngerving/kubernetes-web-client/backend/pkg/kube"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/session"
 )
 
 func main() {
 	appConfig, err := config.NewConfigFromEnv()
+
 	if err != nil {
 		log.Fatalf("Error loading config: %v\n", err)
 	}
@@ -29,12 +31,10 @@ func main() {
 		gin.SetMode(gin.DebugMode)
 	}
 
-	// Create context that listens for interrupt signal from OS
-	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
-	defer stop()
-
-	// Create a Gin router
-	router := gin.Default()
+	kubeClient, err := kube.NewKubeClient(appConfig.KubeConfig)
+	if err != nil {
+		log.Fatalf("Error creating Kubernetes client: %v\n", err)
+	}
 
 	// Initialize database connection
 	pool, err := pgxpool.New(context.Background(), appConfig.DBUrl)
@@ -46,11 +46,34 @@ func main() {
 	sessionManager := session.NewStore(pool)
 	repository := repository.New(pool)
 
-	h := handler.NewHandler(appConfig, sessionManager, repository)
+	h := handler.NewHandler(appConfig, sessionManager, repository, kubeClient)
+
+	// Create context that listens for interrupt signal from OS
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
+
+	// Create a Gin router
+	router := gin.Default()
 
 	router.GET("/auth", h.Auth)
 	router.GET("/auth/callback", h.AuthCallback)
 	router.GET("/user", h.User)
+	router.GET("/pods", func(c *gin.Context) {
+		pods, err := h.KubeClient.ListPods(context.Background())
+		if err != nil {
+			log.Printf("error listing pods: %v\n", err)
+			c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "error listing pods"})
+			return
+		}
+		type Pod struct {
+			Name string `json:"name"`
+		}
+		podList := make([]Pod, len(pods))
+		for i := range pods {
+			podList[i].Name = pods[i].Name
+		}
+		c.IndentedJSON(http.StatusOK, podList)
+	})
 
 	// Create an HTTP server listening on the port provided in environment variables
 	// using the router we defined
