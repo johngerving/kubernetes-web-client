@@ -1,10 +1,12 @@
 apiVersion: v1
 kind: Service
 metadata:
+  labels:
+    k8s-app: api-svc
   name: api-svc
 spec:
   ports:
-  - port: 8090
+  - port: 80
     protocol: TCP
     targetPort: 8090
   selector:

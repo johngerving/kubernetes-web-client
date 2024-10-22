@@ -2,14 +2,16 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: api
+  labels:
+    k8s-app: api
 spec:
   selector:
     matchLabels:
-      app: api
+      k8s-app: api
   template:
     metadata:
       labels:
-        app: api
+        k8s-app: api
     spec:
       containers:
       - name: api
