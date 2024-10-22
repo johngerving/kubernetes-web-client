@@ -43,16 +43,10 @@ func NewServer(config *Config, oauth *oauth2.Config, provider *oidc.Provider, se
 	return srv, nil
 }
 
-// registerHandlers registers the routes of the API.
-func (s *Server) registerHandlers() {
-	s.router.GET("/auth", s.authHandler)
-	s.router.GET("/auth/callback", s.authCallbackHandler)
-	s.router.GET("/user", s.userHandler)
-}
-
-// ListenAndServe starts the HTTP server.
-func (s *Server) ListenAndServe() *http.Server {
-	s.registerHandlers()
+// ListenAndServe takes a HandlerRegistry interface, registers the handlers,
+// and starts the HTTP server.
+func (s *Server) ListenAndServe(registry HandlerRegistry) *http.Server {
+	registry.RegisterHandlers(s)
 
 	// Create context that listens for interrupt signal from OS
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)

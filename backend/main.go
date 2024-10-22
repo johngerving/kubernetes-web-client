@@ -67,6 +67,9 @@ func main() {
 		log.Fatalf("Error creating server: %v", err)
 	}
 
-	// Listen on the server
-	srv.ListenAndServe()
+	// Create main server registry
+	registry := api.MainServerRegistry{}
+
+	// Listen on the server, using the main server registry
+	srv.ListenAndServe(registry)
 }
