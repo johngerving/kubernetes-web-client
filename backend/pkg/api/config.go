@@ -1,7 +1,7 @@
 package api
 
 import (
-	"log"
+	"fmt"
 	"os"
 	"strconv"
 	"strings"
@@ -22,8 +22,8 @@ type Config struct {
 // an error occurs.
 func NewConfigFromEnv() (*Config, error) {
 	// Load environment variables
-	env := os.Getenv("ENV")
-	if strings.ToLower(env) != "production" {
+	env := strings.ToLower(os.Getenv("ENV"))
+	if env != "production" {
 		env = "development"
 	}
 
@@ -36,23 +36,23 @@ func NewConfigFromEnv() (*Config, error) {
 		port, err = strconv.Atoi(portString)
 
 		if err != nil {
-			log.Fatalf("Error loading port %v: %v", portString, err)
+			return nil, fmt.Errorf("unable to load port %v: %v", portString, err)
 		}
 	}
 
 	apiUrl := os.Getenv("API_URL")
 	if apiUrl == "" {
-		log.Fatalf("Error: API URL must be specified")
+		return nil, fmt.Errorf("API URL must be specified")
 	}
 
 	appUrl := os.Getenv("APP_URL")
 	if appUrl == "" {
-		log.Fatalf("Error: App URL must be specified")
+		return nil, fmt.Errorf("app URL must be specified")
 	}
 
 	domain := os.Getenv("DOMAIN")
 	if domain == "" {
-		log.Fatalf("Error: Domain must be specified")
+		return nil, fmt.Errorf("domain must be specified")
 	}
 
 	// Create config, including the oauthConfig
