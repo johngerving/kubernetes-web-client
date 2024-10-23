@@ -2,6 +2,7 @@ package oauth
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/coreos/go-oidc/v3/oidc"
@@ -38,6 +39,46 @@ func TestNewConfigAndProviderFromEnv(t *testing.T) {
 			normalConfig,
 			normalProvider,
 			nil,
+		},
+		{
+			"Missing OAUTH_CLIENT_ID variable",
+			"",
+			"secret123",
+			"https://foo.com/callback",
+			"https://accounts.google.com",
+			nil,
+			nil,
+			fmt.Errorf("OAuth client secret must be specified"),
+		},
+		{
+			"Missing OAUTH_CLIENT_SECRET variable",
+			"oidc12345",
+			"",
+			"https://foo.com/callback",
+			"https://accounts.google.com",
+			nil,
+			nil,
+			fmt.Errorf("OAuth client secret must be specified"),
+		},
+		{
+			"Missing OAUTH_CALLBACK_URL variable",
+			"oidc12345",
+			"secret123",
+			"",
+			"https://accounts.google.com",
+			nil,
+			nil,
+			fmt.Errorf("OAuth callback URL must be specified"),
+		},
+		{
+			"Missing ISSUER variable",
+			"oidc12345",
+			"secret123",
+			"https://foo.com/callback",
+			"",
+			nil,
+			nil,
+			fmt.Errorf("issuer URL must be specified"),
 		},
 	}
 

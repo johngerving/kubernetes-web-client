@@ -7,7 +7,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func (k *Client) ListPods(ctx context.Context) ([]v1.Pod, error) {
+func (k *KubeController) ListPods(ctx context.Context) ([]v1.Pod, error) {
 	pods, err := k.clientset.CoreV1().Pods(k.Namespace).List(ctx, metav1.ListOptions{})
 
 	if err != nil {

@@ -73,6 +73,11 @@ spec:
             secretKeyRef:
               name: backend-secret
               key: DB_URL
+        - name: CLUSTER_TYPE
+          valueFrom:
+            secretKeyRef:
+              name: backend-secret
+              key: CLUSTER_TYPE
         - name: KUBE_TOKEN
           valueFrom:
             secretKeyRef:

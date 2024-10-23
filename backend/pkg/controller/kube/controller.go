@@ -8,17 +8,17 @@ import (
 	"k8s.io/client-go/rest"
 )
 
-type Client struct {
+type KubeController struct {
 	clientset *kubernetes.Clientset
 	Namespace string
 }
 
-// NewClient creates a Client using a kube.Config
-func NewClient(cfg *Config) (*Client, error) {
+// NewKubeController creates a KubeControl using a kube.KubeConfig
+func NewKubeController(cfg *KubeConfig) (*KubeController, error) {
 	// Get CA data from environment variable and base64 decode it
 	caData, err := base64.StdEncoding.DecodeString(cfg.Cert)
 	if err != nil {
-		return nil, fmt.Errorf("unable to decode cert data: %v\n", caData)
+		return nil, fmt.Errorf("unable to decode cert data: %v", caData)
 	}
 
 	// Create a rest config
@@ -37,10 +37,15 @@ func NewClient(cfg *Config) (*Client, error) {
 		return nil, fmt.Errorf("unable to create Kubernetes clientset: %v", err)
 	}
 
-	kubeClient := &Client{
+	kubeClient := &KubeController{
 		clientset: clientset,
 		Namespace: cfg.Namespace,
 	}
 
 	return kubeClient, nil
 }
+
+func (c KubeController) GetWorkspacePodStatus(username string)    {}
+func (c KubeController) GetWorkspaceVolumeStatus(username string) {}
+func (c KubeController) CreateWorkspacePod(username string)       {}
+func (c KubeController) CreateWorkspaceVolume(username string)    {}

@@ -12,24 +12,24 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
+	"github.com/johngerving/kubernetes-web-client/backend/pkg/controller"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/database/repository"
-	"github.com/johngerving/kubernetes-web-client/backend/pkg/kube"
 	"golang.org/x/oauth2"
 )
 
 type Server struct {
-	router       *gin.Engine         // Gin router
-	config       *Config             // General app config
-	oauth        *oauth2.Config      // OAuth config
-	provider     *oidc.Provider      // OIDC provider
-	sessionStore *scs.SessionManager // Session store
-	repository   *repository.Queries // Database
-	kube         *kube.Client        // Kubernetes client
+	router       *gin.Engine           // Gin router
+	config       *Config               // General app config
+	oauth        *oauth2.Config        // OAuth config
+	provider     *oidc.Provider        // OIDC provider
+	sessionStore *scs.SessionManager   // Session store
+	repository   *repository.Queries   // Database
+	controller   controller.Controller // Workload controller
 }
 
 // NewServer takes a Config, oauth2.Config, oidc.Provider, scs.SessionManager, repository.Queries, and kube.Client
 // and returns a Server.
-func NewServer(config *Config, oauth *oauth2.Config, provider *oidc.Provider, sessionStore *scs.SessionManager, repo *repository.Queries, kube *kube.Client) (*Server, error) {
+func NewServer(config *Config, oauth *oauth2.Config, provider *oidc.Provider, sessionStore *scs.SessionManager, repo *repository.Queries, controller controller.Controller) (*Server, error) {
 	srv := &Server{
 		router:       gin.Default(),
 		config:       config,
@@ -37,7 +37,7 @@ func NewServer(config *Config, oauth *oauth2.Config, provider *oidc.Provider, se
 		provider:     provider,
 		sessionStore: sessionStore,
 		repository:   repo,
-		kube:         kube,
+		controller:   controller,
 	}
 
 	return srv, nil

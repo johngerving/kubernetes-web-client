@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-type Config struct {
+type KubeConfig struct {
 	Host      string
 	Port      string
 	Token     string
@@ -13,7 +13,7 @@ type Config struct {
 	Namespace string
 }
 
-func NewConfigFromEnv() (*Config, error) {
+func NewKubeConfigFromEnv() (*KubeConfig, error) {
 	host := os.Getenv("KUBERNETES_SERVICE_HOST")
 	if host == "" {
 		return nil, fmt.Errorf("could not retrieve Kubernetes service host")
@@ -26,12 +26,12 @@ func NewConfigFromEnv() (*Config, error) {
 
 	token := os.Getenv("KUBE_TOKEN")
 	if token == "" {
-		return nil, fmt.Errorf("Kubernetes token must be specified")
+		return nil, fmt.Errorf("kubernetes token must be specified")
 	}
 
 	cert := os.Getenv("KUBE_CERT")
 	if cert == "" {
-		return nil, fmt.Errorf("Kubernetes CA cert must be specified")
+		return nil, fmt.Errorf("kubernetes CA cert must be specified")
 	}
 
 	namespace := os.Getenv("POD_NAMESPACE")
@@ -39,7 +39,7 @@ func NewConfigFromEnv() (*Config, error) {
 		return nil, fmt.Errorf("could not retrieve Kubernetes namespace")
 	}
 
-	cfg := &Config{
+	cfg := &KubeConfig{
 		Host:      host,
 		Port:      port,
 		Token:     token,

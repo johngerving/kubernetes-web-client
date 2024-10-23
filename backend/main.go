@@ -8,8 +8,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/api"
+	"github.com/johngerving/kubernetes-web-client/backend/pkg/controller"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/database/repository"
-	"github.com/johngerving/kubernetes-web-client/backend/pkg/kube"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/oauth"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/session"
 	_ "github.com/joho/godotenv/autoload"
@@ -35,14 +35,8 @@ func main() {
 		log.Fatal(err)
 	}
 
-	// Get Kubernetes config
-	kubeConfig, err := kube.NewConfigFromEnv()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	// Get Kubernetes client from the config we made
-	kubeClient, err := kube.NewClient(kubeConfig)
+	// Get cluster Controller
+	controller, err := controller.NewControllerFromEnv()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -62,7 +56,7 @@ func main() {
 	repository := repository.New(pool)     // New database repository
 
 	// Create the server
-	srv, err := api.NewServer(serverCfg, oauth, provider, sessionStore, repository, kubeClient)
+	srv, err := api.NewServer(serverCfg, oauth, provider, sessionStore, repository, controller)
 	if err != nil {
 		log.Fatalf("Error creating server: %v", err)
 	}
