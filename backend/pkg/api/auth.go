@@ -14,6 +14,23 @@ import (
 
 var maxOauthStateCookieAge int = 60 * 60 * 24 * 365 // Set max age for OAuth state to a year
 
+func (s *Server) authMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Get user data from the session
+		email := s.sessionStore.GetString(c.Request.Context(), "email")
+
+		if email == "" {
+			// Respond with unauthorized
+			c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
+			return
+		}
+
+		// If found in the session, pass the user data along
+		c.Set("user", email)
+		c.Next()
+	}
+}
+
 // authHandler initiates the OAuth flow
 func (s *Server) authHandler(c *gin.Context) {
 	// Create oauthState cookie

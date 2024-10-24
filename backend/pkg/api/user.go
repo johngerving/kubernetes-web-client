@@ -12,15 +12,7 @@ type user struct {
 
 // userHandler gets the information of the user based on their session.
 func (s *Server) userHandler(c *gin.Context) {
-	// Get user data from the session
-	email := s.sessionStore.GetString(c.Request.Context(), "email")
+	email := c.MustGet("user").(string)
 
-	// If found in the session, return the user data
-	if email != "" {
-		c.IndentedJSON(http.StatusOK, gin.H{"email": email})
-		return
-	}
-
-	// Respond with unauthorized
-	c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
+	c.IndentedJSON(http.StatusOK, gin.H{"email": email})
 }
