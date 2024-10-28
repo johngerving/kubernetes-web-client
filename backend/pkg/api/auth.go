@@ -19,9 +19,10 @@ func (s *Server) authMiddleware() gin.HandlerFunc {
 		// Get user data from the session
 		email := s.sessionStore.GetString(c.Request.Context(), "email")
 
+		log.Println("middleware")
 		if email == "" {
 			// Respond with unauthorized
-			c.IndentedJSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
+			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 			return
 		}
 
