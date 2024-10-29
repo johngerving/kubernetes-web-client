@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/alexedwards/scs/v2"
+	"github.com/alexliesenfeld/health"
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/controller"
@@ -18,26 +19,29 @@ import (
 )
 
 type Server struct {
-	router       *gin.Engine           // Gin router
-	config       *Config               // General app config
-	oauth        *oauth2.Config        // OAuth config
-	provider     *oidc.Provider        // OIDC provider
-	sessionStore *scs.SessionManager   // Session store
-	repository   *repository.Queries   // Database
-	controller   controller.Controller // Workload controller
+	router        *gin.Engine           // Gin router
+	config        *Config               // General app config
+	oauth         *oauth2.Config        // OAuth config
+	provider      *oidc.Provider        // OIDC provider
+	sessionStore  *scs.SessionManager   // Session store
+	repository    *repository.Queries   // Database
+	healthChecker health.Checker        // Health checker
+	controller    controller.Controller // Workload controller
 }
 
 // NewServer takes a Config, oauth2.Config, oidc.Provider, scs.SessionManager, repository.Queries, and kube.Client
 // and returns a Server.
-func NewServer(config *Config, oauth *oauth2.Config, provider *oidc.Provider, sessionStore *scs.SessionManager, repo *repository.Queries, controller controller.Controller) (*Server, error) {
+func NewServer(config *Config, oauth *oauth2.Config, provider *oidc.Provider, sessionStore *scs.SessionManager, repo *repository.Queries, healthChecker health.Checker, controller controller.Controller) (*Server, error) {
+
 	srv := &Server{
-		router:       gin.Default(),
-		config:       config,
-		oauth:        oauth,
-		provider:     provider,
-		sessionStore: sessionStore,
-		repository:   repo,
-		controller:   controller,
+		router:        gin.Default(),
+		config:        config,
+		oauth:         oauth,
+		provider:      provider,
+		sessionStore:  sessionStore,
+		repository:    repo,
+		healthChecker: healthChecker,
+		controller:    controller,
 	}
 
 	return srv, nil

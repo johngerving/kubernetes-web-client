@@ -4,7 +4,9 @@ import (
 	"context"
 	"log"
 	"os"
+	"time"
 
+	"github.com/alexliesenfeld/health"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/api"
@@ -55,8 +57,31 @@ func main() {
 	sessionStore := session.NewStore(pool) // New session store
 	repository := repository.New(pool)     // New database repository
 
+	// Set up a health check for the server
+	healthChecker := health.NewChecker(
+		// Set the time-to-live for our cache to 1 second (default).
+		health.WithCacheDuration(1*time.Second),
+
+		// Configure a global timeout that will be applied to all checks.
+		health.WithTimeout(10*time.Second),
+
+		// Check if the database connection is up.
+		// The check function will be executed for each HTTP request.
+		health.WithCheck(health.Check{
+			Name:    "database",
+			Timeout: 2 * time.Second,
+			Check:   pool.Ping,
+		}),
+
+		// Set a status listener that will be invoked when the health status changes.
+		// More powerful hooks are also available (see docs).
+		health.WithStatusListener(func(ctx context.Context, state health.CheckerState) {
+			log.Printf("health status changed to %s\n", state.Status)
+		}),
+	)
+
 	// Create the server
-	srv, err := api.NewServer(serverCfg, oauth, provider, sessionStore, repository, controller)
+	srv, err := api.NewServer(serverCfg, oauth, provider, sessionStore, repository, healthChecker, controller)
 	if err != nil {
 		log.Fatalf("Error creating server: %v", err)
 	}

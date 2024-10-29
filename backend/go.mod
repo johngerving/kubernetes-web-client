@@ -49,6 +49,7 @@ require (
 
 require (
 	github.com/alexedwards/scs/pgxstore v0.0.0-20240316134038-7e11d57e8885
+	github.com/alexliesenfeld/health v0.8.0
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
