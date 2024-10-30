@@ -53,7 +53,7 @@ set -o allexport && source .backend.env && set +o allexport
 
 echo "creating PostgreSQL database"
 helm repo add bitnami https://charts.bitnami.com/bitnami
-helm install my-postgresql bitnami/postgresql --version 16.0.6 --set global.postgresql.auth.password=$DB_PASSWORD
+helm install postgresql bitnami/postgresql --version 16.0.6 --set global.postgresql.auth.password=$DB_PASSWORD
 
 echo "creating API Deployment"
 kubectl create -f - << EOF
@@ -166,9 +166,26 @@ kubectl apply -f yaml/ingress.yaml
 
 PORT_FORWARD=8082
 echo "establishing port-forward on port ${PORT_FORWARD}"
-kubectl port-forward service/haproxy-kubernetes-ingress $PORT_FORWARD:80 &
+kubectl port-forward service/haproxy-kubernetes-ingress $PORT_FORWARD:80 > /dev/null &
 
-read -n 1 -s
+echo "running health check"
+STATUS=0
+TIMER=0
+TIMEOUT=180
+while [ $STATUS -ne 200 ] && [ $TIMER -le $TIMEOUT ]; do
+  STATUS=$(curl --write-out '%{http_code}' --silent --output /dev/null localhost:8082/health)
+
+  TIMER=$((TIMER + 1))
+  sleep 1
+  echo $STATUS
+done
+
+if [ $TIMER -gt $TIMEOUT ]
+then
+  echo "API health check timed out. Exiting..."
+else
+  echo "API health check succeeded. Running tests..."
+fi
 
 echo "stopping port-forward"
 pkill kubectl
