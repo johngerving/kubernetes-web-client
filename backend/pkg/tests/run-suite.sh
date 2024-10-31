@@ -164,7 +164,7 @@ kubectl apply -f yaml/api-svc.yaml
 echo "creating ingress"
 kubectl apply -f yaml/ingress.yaml
 
-PORT_FORWARD=8082
+PORT_FORWARD=8090
 echo "establishing port-forward on port ${PORT_FORWARD}"
 kubectl port-forward service/haproxy-kubernetes-ingress $PORT_FORWARD:80 > /dev/null &
 
@@ -173,11 +173,10 @@ STATUS=0
 TIMER=0
 TIMEOUT=180
 while [ $STATUS -ne 200 ] && [ $TIMER -le $TIMEOUT ]; do
-  STATUS=$(curl --write-out '%{http_code}' --silent --output /dev/null localhost:8082/health)
+  STATUS=$(curl --write-out '%{http_code}' --silent --output /dev/null localhost:${PORT_FORWARD}/health)
 
   TIMER=$((TIMER + 1))
   sleep 1
-  echo $STATUS
 done
 
 if [ $TIMER -gt $TIMEOUT ]
@@ -186,6 +185,9 @@ then
 else
   echo "API health check succeeded. Running tests..."
 fi
+
+echo "running tests"
+go test -v .
 
 echo "stopping port-forward"
 pkill kubectl
