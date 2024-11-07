@@ -153,8 +153,6 @@ spec:
               fieldPath: metadata.namespace
 EOF
 
-kubectl get all
-
 # Wait for HAProxy deployment to be ready
 kubectl wait deployment haproxy-kubernetes-ingress --for condition=Available=True --timeout=180s
 
