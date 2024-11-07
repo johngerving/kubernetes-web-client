@@ -61,6 +61,45 @@ func TestGETHealth(t *testing.T) {
 	})
 }
 
+func TestAuthEndpoints(t *testing.T) {
+	tests := []string{"/user"}
+
+	godotenv.Load(".backend.env")
+	port := os.Getenv("PORT")
+
+	for _, tt := range tests {
+		t.Run(tt+" returns unauthorized", func(t *testing.T) {
+			// Make a request to the user endpoint, with the session cookie in the request
+			r, err := http.NewRequest("GET", "http://localhost:"+port+"/user", nil)
+
+			if err != nil {
+				t.Fatalf("Error creating /user request: %v", err)
+			}
+
+			res, err := http.DefaultClient.Do(r)
+			if err != nil {
+				t.Fatalf("Error executing /user request: %v", err)
+			}
+
+			require.Equal(t, http.StatusUnauthorized, res.StatusCode, "Response status code should be 401.")
+
+			body, err := io.ReadAll(res.Body)
+			if err != nil {
+				t.Fatalf("Error reading response body: %v", err)
+			}
+
+			// Unmarshal response
+			var data map[string]string
+			err = json.Unmarshal([]byte(body), &data)
+			if err != nil {
+				t.Fatalf("unable to unmarshal request response: %v", err)
+			}
+
+			require.Equal(t, "unauthorized", data["message"], "Response 'message' field should be 'unauthorized'.")
+		})
+	}
+}
+
 func TestGETUser(t *testing.T) {
 	t.Run("returns user information", func(t *testing.T) {
 		// Initialize database connection
