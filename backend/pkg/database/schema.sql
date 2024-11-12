@@ -1,6 +1,6 @@
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
-    email text NOT NULL
+    email TEXT NOT NULL
 );
 
 CREATE TABLE sessions (
@@ -10,3 +10,9 @@ CREATE TABLE sessions (
 );
 
 CREATE INDEX sessions_expiry_idx ON sessions (expiry);
+
+CREATE TABLE workspaces (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(50) NOT NULL,
+    owner INT REFERENCES users (id) NOT NULL
+);
