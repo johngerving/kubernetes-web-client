@@ -26,5 +26,6 @@ func (r MainServerRegistry) RegisterHandlers(s *Server) {
 		authed.Use(s.authMiddleware())
 
 		authed.GET("/user", s.userHandler)
+		authed.POST("/user/workspaces", s.postWorkspaceHandler)
 	}
 }

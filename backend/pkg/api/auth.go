@@ -18,16 +18,17 @@ var maxOauthStateCookieAge int = 60 * 60 * 24 * 365 // Set max age for OAuth sta
 func (s *Server) authMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Get user data from the session
-		email := s.sessionStore.GetString(c.Request.Context(), "email")
+		userId := int32(s.sessionStore.GetInt(c.Request.Context(), "user"))
 
-		if email == "" {
+		if userId == 0 {
 			// Respond with unauthorized
+			log.Printf("user ID was %v - unauthorized", userId)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 			return
 		}
 
 		// If found in the session, pass the user data along
-		c.Set("user", email)
+		c.Set("user", userId)
 		c.Next()
 	}
 }
@@ -124,7 +125,8 @@ func (s *Server) authCallbackHandler(c *gin.Context) {
 	}
 
 	// Create a new session to store the user information
-	s.sessionStore.Put(c.Request.Context(), "email", user.Email)
+	log.Printf("Putting user ID %v", user.ID)
+	s.sessionStore.Put(c.Request.Context(), "user", int(user.ID))
 
 	// Redirect to app URL
 	c.Redirect(http.StatusPermanentRedirect, s.config.FrontendURL)

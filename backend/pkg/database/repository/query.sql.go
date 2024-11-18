@@ -18,8 +18,8 @@ func (q *Queries) CreateUser(ctx context.Context, email string) error {
 	return err
 }
 
-const createWorkspace = `-- name: CreateWorkspace :exec
-INSERT INTO workspaces (name, owner) VALUES ($1, $2)
+const createWorkspace = `-- name: CreateWorkspace :one
+INSERT INTO workspaces (name, owner) VALUES ($1, $2) RETURNING id, name, owner
 `
 
 type CreateWorkspaceParams struct {
@@ -27,9 +27,11 @@ type CreateWorkspaceParams struct {
 	Owner int32  `json:"owner"`
 }
 
-func (q *Queries) CreateWorkspace(ctx context.Context, arg CreateWorkspaceParams) error {
-	_, err := q.db.Exec(ctx, createWorkspace, arg.Name, arg.Owner)
-	return err
+func (q *Queries) CreateWorkspace(ctx context.Context, arg CreateWorkspaceParams) (Workspace, error) {
+	row := q.db.QueryRow(ctx, createWorkspace, arg.Name, arg.Owner)
+	var i Workspace
+	err := row.Scan(&i.ID, &i.Name, &i.Owner)
+	return i, err
 }
 
 const findUserWithEmail = `-- name: FindUserWithEmail :one
@@ -38,6 +40,17 @@ SELECT id, email FROM users WHERE email = $1
 
 func (q *Queries) FindUserWithEmail(ctx context.Context, email string) (User, error) {
 	row := q.db.QueryRow(ctx, findUserWithEmail, email)
+	var i User
+	err := row.Scan(&i.ID, &i.Email)
+	return i, err
+}
+
+const findUserWithId = `-- name: FindUserWithId :one
+SELECT id, email FROM users WHERE id = $1
+`
+
+func (q *Queries) FindUserWithId(ctx context.Context, id int32) (User, error) {
+	row := q.db.QueryRow(ctx, findUserWithId, id)
 	var i User
 	err := row.Scan(&i.ID, &i.Email)
 	return i, err
