@@ -18,6 +18,20 @@ func (q *Queries) CreateUser(ctx context.Context, email string) error {
 	return err
 }
 
+const createWorkspace = `-- name: CreateWorkspace :exec
+INSERT INTO workspaces (name, owner) VALUES ($1, $2)
+`
+
+type CreateWorkspaceParams struct {
+	Name  string `json:"name"`
+	Owner int32  `json:"owner"`
+}
+
+func (q *Queries) CreateWorkspace(ctx context.Context, arg CreateWorkspaceParams) error {
+	_, err := q.db.Exec(ctx, createWorkspace, arg.Name, arg.Owner)
+	return err
+}
+
 const findUserWithEmail = `-- name: FindUserWithEmail :one
 SELECT id, email FROM users WHERE email = $1
 `

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/johngerving/kubernetes-web-client/backend/pkg/database/repository"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/session"
 	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/require"
@@ -125,12 +126,22 @@ func TestGETUser(t *testing.T) {
 
 		expiry := time.Now().Add(24 * time.Hour).UTC() // Set session expiration
 
+		wantUser := repository.User{
+			Email: "test@example.com",
+		}
+
 		// Encode session data
 		sessionData, err := sessionStore.Codec.Encode(expiry, map[string]interface{}{
-			"email": "test@example.com",
+			"email": wantUser.Email,
 		})
 		if err != nil {
 			t.Fatalf("Error encoding data: %v", err)
+		}
+
+		// Insert user into database
+		_, err = pool.Exec(context.Background(), "INSERT INTO users (email) VALUES ($1)", wantUser.Email)
+		if err != nil {
+			t.Fatal(err)
 		}
 
 		// Insert session into database
@@ -187,16 +198,16 @@ func TestGETUser(t *testing.T) {
 		}
 
 		// Unmarshal response
-		var data map[string]string
-		err = json.Unmarshal([]byte(body), &data)
+		var haveUser repository.User
+		err = json.Unmarshal([]byte(body), &haveUser)
 		if err != nil {
 			t.Fatalf("unable to unmarshal request response: %v", err)
 		}
 
-		require.Equal(t, "test@example.com", data["email"], "User data response 'email' field should be 'test@example.com'.")
+		require.Equal(t, "test@example.com", haveUser.Email, "User data response 'email' field should be 'test@example.com'.")
 
 		// Clear the table once done
-		_, err = pool.Exec(context.Background(), "TRUNCATE TABLE sessions")
+		_, err = pool.Exec(context.Background(), "TRUNCATE TABLE sessions, users")
 		if err != nil {
 			t.Fatal(err)
 		}

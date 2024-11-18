@@ -10,6 +10,7 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5"
+	"github.com/johngerving/kubernetes-web-client/backend/pkg/database/repository"
 )
 
 var maxOauthStateCookieAge int = 60 * 60 * 24 * 365 // Set max age for OAuth state to a year
@@ -19,7 +20,6 @@ func (s *Server) authMiddleware() gin.HandlerFunc {
 		// Get user data from the session
 		email := s.sessionStore.GetString(c.Request.Context(), "email")
 
-		log.Println("middleware")
 		if email == "" {
 			// Respond with unauthorized
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
@@ -98,7 +98,7 @@ func (s *Server) authCallbackHandler(c *gin.Context) {
 	}
 
 	// Extract custom claims
-	var claims user
+	var claims repository.User
 	if err := idToken.Claims(&claims); err != nil {
 		log.Printf("error extracting OIDC claims: %v", err)
 		c.Redirect(http.StatusTemporaryRedirect, "/auth")

@@ -9,12 +9,18 @@ import (
 )
 
 type Session struct {
-	Token  string
-	Data   []byte
-	Expiry pgtype.Timestamptz
+	Token  string             `json:"token"`
+	Data   []byte             `json:"data"`
+	Expiry pgtype.Timestamptz `json:"expiry"`
 }
 
 type User struct {
-	ID    int32
-	Email string
+	ID    int32  `json:"id"`
+	Email string `json:"email"`
+}
+
+type Workspace struct {
+	ID    int32  `json:"id"`
+	Name  string `json:"name"`
+	Owner int32  `json:"owner"`
 }
