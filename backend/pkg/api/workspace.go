@@ -18,7 +18,7 @@ func (s *Server) postWorkspaceHandler(c *gin.Context) {
 
 	workspaceParams := postWorkspaceForm{}
 
-	if err := c.ShouldBind(&workspaceParams); err != nil {
+	if err := c.ShouldBind(&workspaceParams); err != nil || !isWorkspaceParamsValid(workspaceParams) {
 		log.Printf("invalid response body: %v\n", err)
 		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid request body"})
 		return
@@ -35,4 +35,8 @@ func (s *Server) postWorkspaceHandler(c *gin.Context) {
 	}
 
 	c.IndentedJSON(http.StatusOK, workspace)
+}
+
+func isWorkspaceParamsValid(params postWorkspaceForm) bool {
+	return params.Name != ""
 }

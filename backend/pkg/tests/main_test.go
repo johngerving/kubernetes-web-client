@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/database/repository"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/session"
@@ -160,6 +161,7 @@ func TestGETUser(t *testing.T) {
 
 func TestPOSTWorkspace(t *testing.T) {
 	godotenv.Load(".backend.env")
+
 	t.Run("creates a workspace", func(t *testing.T) {
 		// Initialize database connection
 		dbUrl := os.Getenv("DB_URL")
@@ -207,6 +209,16 @@ func TestPOSTWorkspace(t *testing.T) {
 
 		require.Equal(t, http.StatusOK, res.StatusCode, "Workspace data response status code should be 200.")
 		require.Equal(t, "test", haveWorkspace.Name, "User data response 'email' field should be 'test'.")
+
+		// Check if workspace exists in database
+		var idFromDB int32
+		err = pool.QueryRow(context.Background(), "SELECT id FROM workspaces WHERE id=$1", haveWorkspace.ID).Scan(&idFromDB)
+		if err == pgx.ErrNoRows {
+			t.Fatalf("Workspace with id %v should exist in the database", haveWorkspace.ID)
+		}
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		// Clear the table once done
 		_, err = pool.Exec(context.Background(), "TRUNCATE TABLE sessions, users CASCADE")
