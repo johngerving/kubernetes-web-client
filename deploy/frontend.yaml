@@ -2,14 +2,16 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: frontend
+  labels:
+    k8s-app: frontend
 spec:
   selector:
     matchLabels:
-      app: frontend
+      k8s-app: frontend
   template:
     metadata:
       labels:
-        app: frontend
+        k8s-app: frontend
     spec:
       containers:
       - name: frontend

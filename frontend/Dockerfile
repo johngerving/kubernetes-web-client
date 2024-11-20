@@ -1,12 +1,11 @@
-FROM node:23-alpine AS builder
+FROM node:23-alpine3.19 AS builder
 
 # Build stage
 WORKDIR /app
 COPY package*.json .
-RUN npm ci
+RUN yarn install --immutable
 COPY . .
-RUN npm run build
-RUN npm prune --production
+RUN yarn run build
 
 FROM node:23-alpine
 WORKDIR /app
