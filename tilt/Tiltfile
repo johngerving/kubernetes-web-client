@@ -12,8 +12,6 @@ secret_create_generic('backend-secret', from_env_file='../backend/.env')
 # Create frontend secret from .env file
 secret_create_generic('frontend-secret', from_env_file='../frontend/.env')
 
-docker_build('web-client/frontend', context='../frontend', dockerfile='../frontend/Dockerfile')
-
 k8s_yaml('../deploy/api.yaml')
 k8s_yaml('../deploy/api-svc.yaml')
 k8s_yaml('../deploy/frontend.yaml')
@@ -42,5 +40,19 @@ docker_build_with_restart(
     live_update=[
         sync('../backend', '/app'),
         run('go build .')
+    ]
+)
+
+congrats = "🎉 Congrats, you ran a live_update! 🎉"
+docker_build_with_restart(
+    'web-client/frontend', 
+    context='../frontend',
+    dockerfile="frontend.Dockerfile",
+    build_args={'node_env': 'development'},
+    only=['../frontend'],
+    entrypoint='npm run dev -- --host 0.0.0.0 --port 3000',
+    live_update=[
+        sync('../frontend', '/app'),
+        run('cd /app && yarn install', trigger=['./package.json', './yarn.lock']),
     ]
 )

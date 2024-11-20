@@ -3,6 +3,14 @@ import { twMerge } from "tailwind-merge";
 import { cubicOut } from "svelte/easing";
 import type { TransitionConfig } from "svelte/transition";
 
+export function userInitial(user: User): string {
+	if(user.email.length == 0) {
+		return "";
+	}
+
+	return user.email.substring(0,1).toUpperCase();
+}
+
 export function cn(...inputs: ClassValue[]) {
 	return twMerge(clsx(inputs));
 }

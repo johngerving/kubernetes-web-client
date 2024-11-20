@@ -5,5 +5,11 @@ export default defineConfig({
 	plugins: [sveltekit()],
 	test: {
 		include: ['src/**/*.{test,spec}.{js,ts}']
+	},
+	server: {
+		hmr: {
+			host: '0.0.0.0',
+			port: 3000,
+		}
 	}
 });
