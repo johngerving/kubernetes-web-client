@@ -6,6 +6,8 @@ export async function load({ fetch }) {
     console.log("url:", env.PUBLIC_API_CLUSTER_URL)
     const response = await fetch(`${env.PUBLIC_API_CLUSTER_URL}/user`)
 
+    console.log(response);
+
     // Redirect if not logged in
     if(response.status == 401)
         redirect(302, '/login')

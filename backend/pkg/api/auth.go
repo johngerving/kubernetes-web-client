@@ -22,7 +22,6 @@ func (s *Server) authMiddleware() gin.HandlerFunc {
 
 		if userId == 0 {
 			// Respond with unauthorized
-			log.Printf("user ID was %v - unauthorized", userId)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "unauthorized"})
 			return
 		}
@@ -34,7 +33,7 @@ func (s *Server) authMiddleware() gin.HandlerFunc {
 }
 
 // authHandler initiates the OAuth flow
-func (s *Server) authHandler(c *gin.Context) {
+func (s *Server) authLoginHandler(c *gin.Context) {
 	// Create oauthState cookie
 	oauthState := generateOauthState()
 
@@ -125,8 +124,16 @@ func (s *Server) authCallbackHandler(c *gin.Context) {
 	}
 
 	// Create a new session to store the user information
-	log.Printf("Putting user ID %v", user.ID)
 	s.sessionStore.Put(c.Request.Context(), "user", int(user.ID))
+
+	// Redirect to app URL
+	c.Redirect(http.StatusPermanentRedirect, s.config.FrontendURL)
+}
+
+// authLogoutHandler logs the user out.
+func (s *Server) authLogoutHandler(c *gin.Context) {
+	// Remove the user's session from the store
+	s.sessionStore.Pop(c.Request.Context(), "user")
 
 	// Redirect to app URL
 	c.Redirect(http.StatusPermanentRedirect, s.config.FrontendURL)
