@@ -3,7 +3,7 @@ import { env } from "$env/dynamic/public"
 /** @type {import('@sveltejs/kit').HandleFetch} */
 export async function handleFetch({ event, request, fetch }) {
     // Redirect fetch if the request is to the backend URL
-    if(request.url.startsWith(env.PUBLIC_API_URL)) {
+    if(request.url.startsWith(env.PUBLIC_API_CLUSTER_URL)) {
         request = new Request(
             request.url,
             request,

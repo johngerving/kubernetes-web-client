@@ -2,6 +2,8 @@
     import {
         env
     } from '$env/dynamic/public';
+
+    import "../../app.css";
 </script>
 
 <main>
