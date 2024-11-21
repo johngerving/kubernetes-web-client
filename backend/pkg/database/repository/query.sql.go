@@ -56,6 +56,30 @@ func (q *Queries) FindUserWithId(ctx context.Context, id int32) (User, error) {
 	return i, err
 }
 
+const listUserWorkspaces = `-- name: ListUserWorkspaces :many
+SELECT id, name, owner FROM workspaces WHERE owner = $1
+`
+
+func (q *Queries) ListUserWorkspaces(ctx context.Context, owner int32) ([]Workspace, error) {
+	rows, err := q.db.Query(ctx, listUserWorkspaces, owner)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Workspace
+	for rows.Next() {
+		var i Workspace
+		if err := rows.Scan(&i.ID, &i.Name, &i.Owner); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listUsers = `-- name: ListUsers :many
 SELECT id, email FROM users
 `

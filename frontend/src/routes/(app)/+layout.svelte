@@ -1,5 +1,4 @@
 <script lang="ts">
-    import "../../app.css";
     import * as Avatar from "$lib/components/ui/avatar";
     import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
     import LogOut from "lucide-svelte/icons/log-out";
