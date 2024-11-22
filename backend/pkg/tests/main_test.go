@@ -6,6 +6,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/cookiejar"
@@ -26,8 +27,8 @@ func TestGETHealth(t *testing.T) {
 	t.Run("returns API health status", func(t *testing.T) {
 		godotenv.Load(".backend.env")
 
-		port := os.Getenv("PORT")
-		resp, err := http.Get("http://localhost:" + port + "/health")
+		apiUrl := os.Getenv("API_URL")
+		resp, err := http.Get(apiUrl + "/health")
 
 		if err != nil {
 			t.Fatalf("error getting /health response: %v", err)
@@ -66,22 +67,23 @@ func TestGETHealth(t *testing.T) {
 
 func TestAuthEndpoints(t *testing.T) {
 	tests := []string{"/user"}
+	// tests := struct{}
 
 	godotenv.Load(".backend.env")
-	port := os.Getenv("PORT")
+	apiUrl := os.Getenv("API_URL")
 
 	for _, tt := range tests {
 		t.Run(tt+" returns unauthorized", func(t *testing.T) {
 			// Make a request to the user endpoint, with the session cookie in the request
-			r, err := http.NewRequest("GET", "http://localhost:"+port+"/user", nil)
+			r, err := http.NewRequest("GET", apiUrl+tt, nil)
 
 			if err != nil {
-				t.Fatalf("Error creating /user request: %v", err)
+				t.Fatalf("Error creating %v request: %v", tt, err)
 			}
 
 			res, err := http.DefaultClient.Do(r)
 			if err != nil {
-				t.Fatalf("Error executing /user request: %v", err)
+				t.Fatalf("Error executing %v request: %v", tt, err)
 			}
 
 			require.Equal(t, http.StatusUnauthorized, res.StatusCode, "Response status code should be 401.")
@@ -117,38 +119,21 @@ func TestGETUser(t *testing.T) {
 		}
 		defer pool.Close() // Close connection when done
 
-		port := os.Getenv("PORT")
+		apiUrl := os.Getenv("API_URL")
 
-		client, err := loginUser(pool, "http://localhost:"+port, "test@example.com")
+		client, err := loginUser(pool, apiUrl, "test@example.com")
 		if err != nil {
 			t.Fatal(err)
 		}
 
-		// Make a request to the user endpoint, with the session cookie in the request
-		r, err := http.NewRequest("GET", "http://localhost:"+port+"/user", nil)
-
-		if err != nil {
-			t.Fatalf("Error creating /user request: %v", err)
-		}
-
-		res, err := client.Do(r)
-		if err != nil {
-			t.Fatalf("Error executing /user request: %v", err)
-		}
-
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			t.Fatalf("Error reading response body: %v", err)
-		}
-
-		// Unmarshal response
+		// Make a GET request to the /user endpoint and populate a User struct
 		var haveUser repository.User
-		err = json.Unmarshal([]byte(body), &haveUser)
+		statusCode, err := doJSONRequest(client, "GET", apiUrl+"/user", "", &haveUser)
 		if err != nil {
-			t.Fatalf("unable to unmarshal request response: %v", err)
+			t.Fatal(err)
 		}
 
-		require.Equal(t, http.StatusOK, res.StatusCode, "User data response status code should be 200.")
+		require.Equal(t, http.StatusOK, statusCode, "User data response status code should be 200.")
 		require.Equal(t, "test@example.com", haveUser.Email, "User data response 'email' field should be 'test@example.com'.")
 
 		// Clear the table once done
@@ -174,40 +159,21 @@ func TestPOSTWorkspace(t *testing.T) {
 		}
 		defer pool.Close() // Close connection when done
 
-		port := os.Getenv("PORT")
+		apiUrl := os.Getenv("API_URL")
 
-		client, err := loginUser(pool, "http://localhost:"+port, "test@example.com")
+		client, err := loginUser(pool, apiUrl, "test@example.com")
 		if err != nil {
 			t.Fatal(err)
 		}
 
 		// Make a request to the user/workspaces endpoint, with the session cookie in the request
-		var jsonStr = []byte(`{"name": "test"}`)
-		r, err := http.NewRequest("POST", "http://localhost:"+port+"/user/workspaces", bytes.NewBuffer(jsonStr))
-		r.Header.Set("Content-Type", "application/json")
-
-		if err != nil {
-			t.Fatalf("Error creating /user/workspaces request: %v", err)
-		}
-
-		res, err := client.Do(r)
-		if err != nil {
-			t.Fatalf("Error executing /user/workspaces request: %v", err)
-		}
-
-		body, err := io.ReadAll(res.Body)
-		if err != nil {
-			t.Fatalf("Error reading response body: %v", err)
-		}
-
-		// Unmarshal response
 		var haveWorkspace repository.Workspace
-		err = json.Unmarshal([]byte(body), &haveWorkspace)
+		statusCode, err := doJSONRequest(client, "POST", apiUrl+"/user/workspaces", `{"name": "test"}`, &haveWorkspace)
 		if err != nil {
-			t.Fatalf("unable to unmarshal request response: %v", err)
+			t.Fatal(err)
 		}
 
-		require.Equal(t, http.StatusOK, res.StatusCode, "Workspace data response status code should be 200.")
+		require.Equal(t, http.StatusOK, statusCode, "Workspace data response status code should be 200.")
 		require.Equal(t, "test", haveWorkspace.Name, "User data response 'email' field should be 'test'.")
 
 		// Check if workspace exists in database
@@ -226,6 +192,98 @@ func TestPOSTWorkspace(t *testing.T) {
 			t.Fatal(err)
 		}
 	})
+}
+
+func TestGETWorkspaces(t *testing.T) {
+	godotenv.Load(".backend.env")
+
+	t.Run("creates a workspace", func(t *testing.T) {
+		// Initialize database connection
+		dbUrl := os.Getenv("DB_URL")
+		if dbUrl == "" {
+			t.Fatalf("Error: Database URL must be specified")
+		}
+		pool, err := pgxpool.New(context.Background(), dbUrl)
+		if err != nil {
+			t.Fatalf("Failed to initialize database connection: %v", err)
+		}
+		defer pool.Close() // Close connection when done
+
+		apiUrl := os.Getenv("API_URL")
+
+		// Create list of clients and log them in
+		clientNames := []string{"test1@example.com", "test2@example.com", "test3@example.com"}
+		var clients []*http.Client
+
+		for _, name := range clientNames {
+			client, err := loginUser(pool, apiUrl, name)
+			if err != nil {
+				t.Fatal(err)
+			}
+			clients = append(clients, client)
+		}
+
+		// Make requests to the user/workspaces endpoint to populate the users' workspaces
+		var haveWorkspace repository.Workspace
+		_, err = doJSONRequest(clients[0], "POST", apiUrl+"/user/workspaces", `{"name": "user1workspace"}`, &haveWorkspace)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = doJSONRequest(clients[1], "POST", apiUrl+"/user/workspaces", `{"name": "user2workspace1"}`, &haveWorkspace)
+		if err != nil {
+			t.Fatal(err)
+		}
+		_, err = doJSONRequest(clients[1], "POST", apiUrl+"/user/workspaces", `{"name": "user2workspace2"}`, &haveWorkspace)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// var workspaces []repository.Workspace
+		// haveClient1Workspaces, err := doJSONRequest(clients[0], "GET", apiUrl+"/user/workspaces", "", &workspaces)
+
+		// Clear the table once done
+		_, err = pool.Exec(context.Background(), "TRUNCATE TABLE sessions, users CASCADE")
+		if err != nil {
+			t.Fatal(err)
+		}
+	})
+}
+
+// doJSONRequest takes an HTTP client, a request method, a URL, a request body, and a pointer
+// to a responseBody struct. It executes the request and writes the response to the responseBody
+// struct. It returns the status code of the request and an error.
+func doJSONRequest[T any](client *http.Client, method string, url string, requestBody string, responseBody *T) (int, error) {
+	var r *http.Request
+	var err error
+	if requestBody != "" {
+		r, err = http.NewRequest(method, url, bytes.NewBuffer([]byte(requestBody)))
+	} else {
+		r, err = http.NewRequest(method, url, nil)
+	}
+
+	r.Header.Set("Content-Type", "application/json")
+
+	if err != nil {
+		return 0, fmt.Errorf("error creating %v request to %v: %v", method, url, err)
+	}
+
+	res, err := client.Do(r)
+	if err != nil {
+		return 0, fmt.Errorf("error executing %v request to %v: %v", method, url, err)
+	}
+
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		return 0, fmt.Errorf("error reading response body: %v", err)
+	}
+
+	// Unmarshal response
+	err = json.Unmarshal([]byte(body), responseBody)
+	if err != nil {
+		return 0, fmt.Errorf("error unmarshalling request response: %v", err)
+	}
+
+	return res.StatusCode, nil
 }
 
 // loginUser takes a database connection, a domain, and an email and creates and logs in
