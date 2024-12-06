@@ -8,12 +8,12 @@ import (
 
 func TestIsWorkspaceParamsValid(t *testing.T) {
 	tests := []struct {
-		testDescription string // Test description
-		name            string // Name of workspace
-		want            bool
+		testDescription string            // Test description
+		name            string            // Name of workspace
+		want            map[string]string // List of problems
 	}{
-		{"Normal workspace params", "test", true},
-		{"Empty name", "", false},
+		{"Normal workspace params", "test", map[string]string{}},
+		{"Empty name", "", map[string]string{"name": "Name must be at least 2 characters long"}},
 	}
 
 	for _, test := range tests {
@@ -22,7 +22,7 @@ func TestIsWorkspaceParamsValid(t *testing.T) {
 				Name: test.name,
 			}
 
-			have := isWorkspaceParamsValid(params)
+			have := params.valid()
 
 			require.Equal(t, test.want, have)
 		})

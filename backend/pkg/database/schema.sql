@@ -14,5 +14,6 @@ CREATE INDEX sessions_expiry_idx ON sessions (expiry);
 CREATE TABLE workspaces (
     id SERIAL PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
-    owner INT REFERENCES users (id) NOT NULL
+    owner INT REFERENCES users (id) NOT NULL,
+    PRIMARY KEY (owner, name)
 );
