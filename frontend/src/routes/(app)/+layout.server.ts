@@ -1,8 +1,8 @@
 import { env } from "$env/dynamic/public"
 import { redirect } from "@sveltejs/kit"
+import type { LayoutServerLoad } from "./$types.js"
 
-/** @type {import('./$types').LayoutServerLoad} */
-export async function load({ fetch }) {
+export const load: LayoutServerLoad = async ({ fetch }) => {
     const response = await fetch(`${env.PUBLIC_API_CLUSTER_URL}/user`)
 
     // Redirect if not logged in

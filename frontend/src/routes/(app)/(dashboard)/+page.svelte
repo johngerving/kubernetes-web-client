@@ -5,27 +5,23 @@
         Button,
         buttonVariants
     } from "$lib/components/ui/button/index.js";
-    /** @type {Props} */
-    let { data } = $props();
+	import { enhance } from "$app/forms";
+	import { FormControl, FormField } from "$lib/components/ui/form";
+	import FormLabel from "$lib/components/ui/form/form-label.svelte";
+	import Input from "$lib/components/ui/input/input.svelte";
+	import type { PageData } from "./$types";
+	import { Label } from "$lib/components/ui/label";
+	import CreateWorkspaceDialog from "./CreateWorkspaceDialog.svelte";
+    
+    let { data, form }: { data: PageData, form: PostWorkspaceFormData } = $props();
 
-    const workspaces: Workspace[] = data.workspaces;
+    let workspaces: Workspace[] = $derived(data.workspaces);
 </script>
 
 <div class="w-full h-full px-56 py-8">
     <div class="flex justify-between">
         <h1 class="text-4xl mb-3">Workspaces</h1>
-        <Dialog.Root>
-        <Dialog.Trigger class={buttonVariants({ variant: "outline"})}>Create Workspace</Dialog.Trigger>
-        <Dialog.Content>
-            <Dialog.Header>
-            <Dialog.Title>Are you sure absolutely sure?</Dialog.Title>
-            <Dialog.Description>
-            This action cannot be undone. This will permanently delete your account
-            and remove your data from our servers.
-            </Dialog.Description>
-            </Dialog.Header>
-        </Dialog.Content>
-        </Dialog.Root>
+        <CreateWorkspaceDialog {form}/>
     </div>
     <div class="border rounded-lg overflow-hidden">
         <Table.Root>
@@ -37,7 +33,7 @@
              </Table.Row>
             </Table.Header>
             <Table.Body>
-                {#each workspaces as workspace}
+                {#each workspaces as workspace (workspace.id)}
                     <Table.Row>
                         <Table.Cell>{workspace.name}</Table.Cell>
                         <Table.Cell class="text-center"></Table.Cell>

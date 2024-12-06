@@ -4,10 +4,7 @@ import { env } from "$env/dynamic/public"
 export async function handleFetch({ event, request, fetch }) {
     // Redirect fetch if the request is to the backend URL
     if(request.url.startsWith(env.PUBLIC_API_CLUSTER_URL)) {
-        request = new Request(
-            request.url,
-            request,
-        )
+        request = request.clone()
 
         // Copy the cookies to a new request
         request.headers.set(

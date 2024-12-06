@@ -1,6 +1,6 @@
 <script lang="ts">
     import * as Avatar from "$lib/components/ui/avatar";
-    import * as DropdownMenu from "$lib/components/ui/dropdown-menu";
+    import * as DropdownMenu from "$lib/components/ui/dropdown-menu/index.js";
     import LogOut from "lucide-svelte/icons/log-out";
 	import { userInitial } from "$lib/utils";
 	import { env } from "$env/dynamic/public";
@@ -23,12 +23,12 @@
     <DropdownMenu.Root>
         <DropdownMenu.Trigger>
             <Avatar.Root>
-                <Avatar.Fallback><span class="text-slate-900 font-bold text-xl">{initial}</span></Avatar.Fallback>
+                <Avatar.Fallback><span class="select-none text-slate-900 font-bold text-xl">{initial}</span></Avatar.Fallback>
             </Avatar.Root>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content>
             <DropdownMenu.Group>
-                <DropdownMenu.Label>{user.email}</DropdownMenu.Label>
+                <DropdownMenu.GroupHeading>{user.email}</DropdownMenu.GroupHeading>
                 <DropdownMenu.Separator />
                 <DropdownMenu.Item>
                     <form action={`${env.PUBLIC_API_URL}/auth/logout`} method="post" class="w-full">
