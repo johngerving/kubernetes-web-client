@@ -5,13 +5,6 @@
 	import { userInitial } from "$lib/utils";
 	import { env } from "$env/dynamic/public";
 
-    /**
-     * @typedef {Object} Props
-     * @property {import('svelte').Snippet} [children]
-     */
-
-    /** @type {Props} */
-    /** @type {{ data: import('./$types').LayoutData, children: Snippet }}*/
     let { data, children } = $props();
 
     const user = data.user as User;

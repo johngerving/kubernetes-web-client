@@ -14,8 +14,9 @@
         <h1 class="text-4xl mb-3">Workspaces</h1>
         <CreateWorkspaceDialog {form}/>
     </div>
-    <div class="border rounded-lg overflow-hidden">
+    
         {#await workspaces}
+        <div class="border rounded-lg overflow-hidden">
             <Table.Root>
                 <Table.Header class="bg-slate-50">
                 <Table.Row>
@@ -40,7 +41,9 @@
                     {/each}
                 </Table.Body>
             </Table.Root>
+        </div>
         {:then workspaces}
+        <div class="border rounded-lg overflow-hidden">
             <Table.Root>
                 <Table.Header class="bg-slate-50">
                 <Table.Row>
@@ -59,9 +62,10 @@
                     {/each}
                 </Table.Body>
             </Table.Root>
+        </div>
         {:catch error}
-            <p>Error loading workspaces: {error.message}</p>
+            <p class="text-red-600">Unable to retrieve workspaces</p>
         {/await}
-    </div>
+    
 </div>
 

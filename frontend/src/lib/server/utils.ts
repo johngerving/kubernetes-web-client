@@ -1,14 +1,14 @@
 import { env } from "$env/dynamic/public";
+import { error } from "@sveltejs/kit";
 
-const delay = (delayInms: number) => {
-    return new Promise(resolve => setTimeout(resolve, delayInms));
-};
-
-export async function getUserWorkspaces(fetch: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>): Promise<Workspace[]> {
+export async function getUserWorkspaces(fetch: (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>): Promise<Workspace[]|never> {
+    // Use fetch function passed from form
     const response = await fetch(`${env.PUBLIC_API_CLUSTER_URL}/user/workspaces`)
 
+    // If there was an error, return a rejected promise
     if (!response.ok) {
-        throw new Error(`Response status: ${response.status}`)
+        const promise = Promise.reject(new Error("unable to retrieve workspaces"));
+        return promise;
     }
 
     const json = await response.json();
@@ -16,8 +16,6 @@ export async function getUserWorkspaces(fetch: (input: RequestInfo | URL, init?:
     let workspaces: Workspace[] = [];
     if(json != null)
         workspaces = json;
-
-    await delay(2000);
 
     return workspaces;
 }

@@ -10,6 +10,7 @@
 
     let dialogOpen = $state(false);
 
+    // When the dialog is closed, clear the form data and errors
     $effect(() => {
         if(!dialogOpen && form != null) {
             form.errors = {};
@@ -25,6 +26,7 @@
             <Dialog.Title>Create Workspace</Dialog.Title>
         </Dialog.Header>
         <form method="POST" action="?/create" use:enhance={() => {
+            // Close the dialog when the form is completed
             return async ({ result, update }) => {
                 await update();
                 if(result.type === 'success')
@@ -33,6 +35,7 @@
         }}>
             <Label for="name">Name</Label>
             <Input name="name" value={form?.name ?? ''} autocomplete="off"/>
+            <!-- Display error if field is invalid -->
             {#if form?.errors?.name ?? false}
                 <p class="text-red-600">{form?.errors?.name}</p>
             {/if}

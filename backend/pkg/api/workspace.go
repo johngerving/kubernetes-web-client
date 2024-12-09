@@ -65,6 +65,12 @@ func (s *Server) postWorkspaceHandler(c *gin.Context) {
 	c.IndentedJSON(http.StatusOK, workspace)
 }
 
+// deleteWorkspaceHandler deletes a workspace with a
+// given ID.
+func (s *Server) deleteWorkspaceHandler(c *gin.Context) {
+	// userId := c.MustGet("user").(int32)
+}
+
 // getWorkspacesHandler gets a list of a user's
 // workspaces.
 func (s *Server) getWorkspacesHandler(c *gin.Context) {
