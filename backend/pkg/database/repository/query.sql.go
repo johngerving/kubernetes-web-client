@@ -34,6 +34,22 @@ func (q *Queries) CreateWorkspace(ctx context.Context, arg CreateWorkspaceParams
 	return i, err
 }
 
+const deleteWorkspaceWithId = `-- name: DeleteWorkspaceWithId :one
+DELETE FROM workspaces WHERE owner = $1 AND id = $2 RETURNING id, name, owner
+`
+
+type DeleteWorkspaceWithIdParams struct {
+	Owner int32 `json:"owner"`
+	ID    int32 `json:"id"`
+}
+
+func (q *Queries) DeleteWorkspaceWithId(ctx context.Context, arg DeleteWorkspaceWithIdParams) (Workspace, error) {
+	row := q.db.QueryRow(ctx, deleteWorkspaceWithId, arg.Owner, arg.ID)
+	var i Workspace
+	err := row.Scan(&i.ID, &i.Name, &i.Owner)
+	return i, err
+}
+
 const findUserWithEmail = `-- name: FindUserWithEmail :one
 SELECT id, email FROM users WHERE email = $1
 `

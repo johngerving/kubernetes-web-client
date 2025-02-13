@@ -29,6 +29,7 @@ func (r MainServerRegistry) RegisterHandlers(s *Server) {
 
 		authed.GET("/user", s.userHandler)
 		authed.POST("/user/workspaces", s.postWorkspaceHandler)
+		authed.DELETE("/user/workspaces/:id", s.deleteWorkspaceHandler)
 		authed.GET("/user/workspaces", s.getWorkspacesHandler)
 	}
 }

@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/database/repository"
 )
@@ -68,7 +70,36 @@ func (s *Server) postWorkspaceHandler(c *gin.Context) {
 // deleteWorkspaceHandler deletes a workspace with a
 // given ID.
 func (s *Server) deleteWorkspaceHandler(c *gin.Context) {
-	// userId := c.MustGet("user").(int32)
+	userId := c.MustGet("user").(int32)
+
+	// Get the workspace ID
+	idParam := c.Param("id")
+	workspaceId, err := strconv.Atoi(idParam)
+	if err != nil {
+		log.Printf("error in id param: %v\n", err)
+		c.IndentedJSON(http.StatusBadRequest, gin.H{"message": "invalid ID param"})
+		return
+	}
+
+	// Create params for database delete
+	params := repository.DeleteWorkspaceWithIdParams{
+		Owner: userId,
+		ID:    int32(workspaceId),
+	}
+
+	_, err = s.repository.DeleteWorkspaceWithId(context.Background(), params)
+	if err == pgx.ErrNoRows {
+		log.Printf("row with ID %v owned by user with ID %v does not exist: %v", workspaceId, userId, err)
+		c.IndentedJSON(http.StatusNotFound, gin.H{"message": "workspace not found"})
+		return
+	}
+	if err != nil {
+		log.Printf("error deleting workspace with ID %v: %v\n", workspaceId, err)
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": "error removing workspace"})
+		return
+	}
+
+	c.Status(http.StatusOK)
 }
 
 // getWorkspacesHandler gets a list of a user's

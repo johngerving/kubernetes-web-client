@@ -13,5 +13,8 @@ INSERT INTO users (email) VALUES ($1);
 -- name: CreateWorkspace :one
 INSERT INTO workspaces (name, owner) VALUES ($1, $2) RETURNING *;
 
+-- name: DeleteWorkspaceWithId :one
+DELETE FROM workspaces WHERE owner = $1 AND id = $2 RETURNING *;
+
 -- name: ListUserWorkspaces :many
 SELECT * FROM workspaces WHERE owner = $1;

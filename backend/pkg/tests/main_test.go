@@ -15,6 +15,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/johngerving/kubernetes-web-client/backend/pkg/database/repository"
@@ -137,7 +138,7 @@ func TestGETUser(t *testing.T) {
 		require.Equal(t, "test@example.com", haveUser.Email, "User data response 'email' field should be 'test@example.com'.")
 
 		// Clear the table once done
-		_, err = pool.Exec(context.Background(), "TRUNCATE TABLE sessions, users CASCADE")
+		_, err = pool.Exec(context.Background(), "TRUNCATE TABLE sessions, users, workspaces CASCADE")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -187,7 +188,7 @@ func TestPOSTWorkspace(t *testing.T) {
 		}
 
 		// Clear the table once done
-		_, err = pool.Exec(context.Background(), "TRUNCATE TABLE sessions, users CASCADE")
+		_, err = pool.Exec(context.Background(), "TRUNCATE TABLE sessions, users, workspaces CASCADE")
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -209,40 +210,71 @@ func TestGETWorkspaces(t *testing.T) {
 		}
 		defer pool.Close() // Close connection when done
 
+		// Clear database
+		_, err = pool.Exec(context.Background(), "TRUNCATE TABLE sessions, users, workspaces CASCADE")
+		if err != nil {
+			t.Fatal(err)
+		}
 		apiUrl := os.Getenv("API_URL")
 
 		// Create list of clients and log them in
 		clientNames := []string{"test1@example.com", "test2@example.com", "test3@example.com"}
-		var clients []*http.Client
+		var clients []*resty.Client
 
 		for _, name := range clientNames {
-			client, err := loginUser(pool, apiUrl, name)
+			hc, err := loginUser(pool, apiUrl, name)
 			if err != nil {
 				t.Fatal(err)
 			}
+
+			client := resty.NewWithClient(hc).
+				SetHeader("Content-Type", "application/json")
 			clients = append(clients, client)
 		}
 
 		// Make requests to the user/workspaces endpoint to populate the users' workspaces
-		var haveWorkspace repository.Workspace
-		_, err = doJSONRequest(clients[0], "POST", apiUrl+"/user/workspaces", `{"name": "user1workspace"}`, &haveWorkspace)
-		if err != nil {
-			t.Fatal(err)
-		}
-		_, err = doJSONRequest(clients[1], "POST", apiUrl+"/user/workspaces", `{"name": "user2workspace1"}`, &haveWorkspace)
-		if err != nil {
-			t.Fatal(err)
-		}
-		_, err = doJSONRequest(clients[1], "POST", apiUrl+"/user/workspaces", `{"name": "user2workspace2"}`, &haveWorkspace)
-		if err != nil {
-			t.Fatal(err)
-		}
+		resp, err := clients[0].R().
+			SetBody(`{"name": "user1workspace"}`).
+			Post(apiUrl + "/user/workspaces")
+		require.Equal(t, nil, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode())
 
-		// var workspaces []repository.Workspace
-		// haveClient1Workspaces, err := doJSONRequest(clients[0], "GET", apiUrl+"/user/workspaces", "", &workspaces)
+		_, err = clients[1].R().
+			SetBody(`{"name": "user2workspace1"}`).
+			Post(apiUrl + "/user/workspaces")
+		require.Equal(t, nil, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode())
+
+		_, err = clients[1].R().
+			SetBody(`{"name": "user2workspace2"}`).
+			Post(apiUrl + "/user/workspaces")
+		require.Equal(t, nil, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode())
+
+		/******* Test Get Requests *******/
+		var body []map[string]string
+
+		resp, err = clients[0].R().
+			Get(apiUrl + "/user/workspaces")
+		require.Equal(t, nil, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode())
+
+		json.Unmarshal(resp.Body(), &body)
+		require.Equal(t, 1, len(body), "User 1 should have 1 workspace")
+		require.Equal(t, "user1workspace", body[0]["name"], "User 1 should be able to access workspace they created")
+
+		resp, err = clients[1].R().
+			Get(apiUrl + "/user/workspaces")
+		require.Equal(t, nil, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode())
+
+		json.Unmarshal(resp.Body(), &body)
+		require.Equal(t, 2, len(body), "User 2 should have 2 workspaces")
+		require.Equal(t, "user2workspace1", body[0]["name"])
+		require.Equal(t, "user2workspace2", body[1]["name"])
 
 		// Clear the table once done
-		_, err = pool.Exec(context.Background(), "TRUNCATE TABLE sessions, users CASCADE")
+		_, err = pool.Exec(context.Background(), "TRUNCATE TABLE sessions, users, workspaces CASCADE")
 		if err != nil {
 			t.Fatal(err)
 		}
