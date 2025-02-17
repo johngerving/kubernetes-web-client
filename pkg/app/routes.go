@@ -53,6 +53,7 @@ func (a *App) registerRoutes() (*echo.Echo, error) {
 // registerPageRoutes registers routes for HTML pages
 func (a *App) registerPageRoutes(e *echo.Echo) error {
 	e.GET("/", handler.IndexPageGET())
+	e.GET("/upload", handler.UploadPageGET())
 
 	return nil
 }
