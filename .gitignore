@@ -3,3 +3,6 @@
 .frontend.env
 tmp/
 tailwindcss
+uploads/
+tusd/tusd
+tusd/hooks/hook_handler

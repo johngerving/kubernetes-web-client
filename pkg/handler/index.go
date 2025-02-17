@@ -10,6 +10,6 @@ import (
 // GET /
 func IndexPageGET() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return views.Chat().Render(context.Background(), c.Response().Writer)
+		return views.Index().Render(context.Background(), c.Response().Writer)
 	}
 }

@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import "github.com/johngerving/kubernetes-web-client/pkg/templates"
 
-func Chat() templ.Component {
+func Index() templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -43,7 +43,7 @@ func Chat() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<h1>Hello World</h1>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!-- 1. Add CSS to `<head>` --> <link href=\"https://releases.transloadit.com/uppy/v4.13.2/uppy.min.css\" rel=\"stylesheet\"><!-- 2. Initialize --> <div id=\"uppy\"></div><script type=\"module\">\n        import { Uppy, Dashboard, Tus } from \"https://releases.transloadit.com/uppy/v4.13.2/uppy.min.mjs\"\n        const uppy = new Uppy({\n            onBeforeUpload: (file) => {\n                console.log(file);\n            }\n        })\n        uppy.use(Dashboard, { target: '#uppy', inline: true, fileManagerSelectionType: 'both' }).use(Tus, {endpoint: 'http://localhost:8081/files/'})\n        </script>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

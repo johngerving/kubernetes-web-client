@@ -514,6 +514,9 @@
   .static {
     position: static;
   }
+  .inline {
+    display: inline;
+  }
 }
 @font-face {
   font-family: "Inter Fallback";
