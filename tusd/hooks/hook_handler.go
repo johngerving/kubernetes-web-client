@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
 
 	"github.com/hashicorp/go-plugin"
 	"github.com/tus/tusd/v2/pkg/hooks"
@@ -39,7 +41,6 @@ func (g *MyHookHandler) InvokeHook(req hooks.HookRequest) (res hooks.HookRespons
 			res.HTTPResponse.Body = "no filename provided"
 			res.HTTPResponse.Header["X-Some-Header"] = "yes"
 		}
-		log.Println(req.Event.Upload.MetaData)
 	}
 
 	// Example: Use the post-finish hook to print information about a completed upload,
@@ -49,13 +50,36 @@ func (g *MyHookHandler) InvokeHook(req hooks.HookRequest) (res hooks.HookRespons
 		size := req.Event.Upload.Size
 		storage := req.Event.Upload.Storage
 
-		log.Printf("Upload %s (%d bytes) is finished. Find the file at:\n", id, size)
+		fileName, ok := req.Event.Upload.MetaData["filename"]
+		if !ok {
+			log.Printf("Filename does not exist for upload %v\n", id)
+			return hooks.HookResponse{}, fmt.Errorf("filename not provided")
+		}
+
+		err := renameFile(filepath.Join("./uploads", id), filepath.Join("./uploads", fileName))
+		if err != nil {
+			log.Println(err)
+			return hooks.HookResponse{}, nil
+		}
+
+		log.Printf("Upload %s (%d bytes) is finished. Find the file at:\n", fileName, size)
 		log.Println(storage)
 
 	}
 
 	// Return the hook response to tusd.
 	return res, nil
+}
+
+// renameFile renames a file from src to dst.
+// If unsuccessful, it returns an error.
+func renameFile(src, dst string) error {
+	err := os.Link(src, dst)
+	if err != nil {
+		return err
+	}
+
+	return os.Remove(src)
 }
 
 // handshakeConfigs are used to just do a basic handshake between
