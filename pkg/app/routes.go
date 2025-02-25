@@ -46,6 +46,7 @@ func (a *App) registerRoutes() (*echo.Echo, error) {
 	}
 
 	// Register all other routes
+	e.GET("/files", handler.FilesGET(a.config.uploadDir))
 
 	return e, nil
 }

@@ -9,10 +9,12 @@ templ Page(title string) {
         <link rel="stylesheet" href="/static/css/output.css" type="text/css">
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
         <script src="/static/js/index.js"></script>
+        <script src="/static/js/htmx.min.js"></script>
         <title>{title}</title>
     </head>
-    <body>
-       { children... } 
+    <body hx-boost="true" class="flex w-screen h-screen">
+        @Sidebar()
+        <main class="w-full h-full">{ children... }</main>
     </body>
     </html>
 }

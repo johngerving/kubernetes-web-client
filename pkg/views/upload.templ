@@ -8,7 +8,9 @@ templ Upload() {
         <link href="https://releases.transloadit.com/uppy/v4.13.2/uppy.min.css" rel="stylesheet">
 
         <!-- 2. Initialize -->
-        <div id="uppy"></div>
+        <div class="w-full h-full flex justify-center items-center">
+            <div id="uppy" class=""></div>
+        </div>
 
         <script type="module">
         import { Uppy, Dashboard, Tus } from "https://releases.transloadit.com/uppy/v4.13.2/uppy.min.mjs"
@@ -17,7 +19,7 @@ templ Upload() {
                 console.log(file);
             }
         })
-        uppy.use(Dashboard, { target: '#uppy', inline: true, fileManagerSelectionType: 'both' }).use(Tus, {endpoint: 'http://localhost:8081/files/'})
+        uppy.use(Dashboard, { target: '#uppy', inline: true, fileManagerSelectionType: 'both' }).use(Tus, {endpoint: 'http://localhost:8081/uploads/'})
         </script>
     }
 }

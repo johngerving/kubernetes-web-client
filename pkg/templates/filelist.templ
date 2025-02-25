@@ -1,11 +1,26 @@
 package templates
 
 import "github.com/johngerving/kubernetes-web-client/pkg/types"
+import "strconv"
+import "fmt"
 
 
-templ FileList(files []types.File) {
+templ FileList(files types.Files) {
+    <form>
+        for i, file := range files {
+            <label for={fmt.Sprintf("file-%v", i)}>
+                <input type="checkbox" name="file" value={strconv.Itoa(i)} id={fmt.Sprintf("file-%v", i)} class="peer hidden"/>
+                @File(file, i == 0)
+            </label>
+        }
+    </form>
 }
 
-templ File(file []types.File) {
-    <div></div>
+templ File(file types.File, displayTopBorder bool) {
+    <div class={"w-full p-3 flex gap-2 hover:bg-slate-100 peer-checked:bg-sky-200 peer-checked:hover:bg-sky-300/75 transition-all border-slate-300 border-b",
+        templ.KV(" border-t", displayTopBorder)
+    }>
+        @FileIcon("h-6 fill-gray-500")
+        <p>{file.Name}</p>
+    </div>
 }

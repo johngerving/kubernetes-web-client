@@ -15,7 +15,9 @@ type App struct {
 
 // New() creates a new *App and returns it.
 func New() (*App, error) {
-	config := Config{}
+	config := Config{
+		uploadDir: "./uploads",
+	}
 
 	// Set up a logger
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))

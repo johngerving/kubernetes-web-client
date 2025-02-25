@@ -1,11 +1,12 @@
 package views
 
-import "github.com/johngerving/kubernetes-web-client/pkg/templates"
+import (
+    "github.com/johngerving/kubernetes-web-client/pkg/templates"
+)
 
 templ Index() {
     @templates.Page("Web Client") {
-        <main>
-            <h1>Hello World</h1> 
-        </main>
+        <h1 class="text-xl m-3">Files</h1> 
+        <div hx-get="/files" hx-trigger="load" hx-swap="outerHTML"></div>
     }
 }
