@@ -535,11 +535,17 @@
   .h-6 {
     height: calc(var(--spacing) * 6);
   }
+  .h-12 {
+    height: calc(var(--spacing) * 12);
+  }
   .h-full {
     height: 100%;
   }
   .h-screen {
     height: 100vh;
+  }
+  .w-12 {
+    width: calc(var(--spacing) * 12);
   }
   .w-72 {
     width: calc(var(--spacing) * 72);
@@ -555,6 +561,9 @@
   }
   .items-center {
     align-items: center;
+  }
+  .justify-between {
+    justify-content: space-between;
   }
   .justify-center {
     justify-content: center;
@@ -580,8 +589,8 @@
   .fill-gray-500 {
     fill: var(--color-gray-500);
   }
-  .p-3 {
-    padding: calc(var(--spacing) * 3);
+  .fill-gray-700 {
+    fill: var(--color-gray-700);
   }
   .p-6 {
     padding: calc(var(--spacing) * 6);
@@ -589,6 +598,9 @@
   .text-xl {
     font-size: var(--text-xl);
     line-height: var(--tw-leading, var(--text-xl--line-height));
+  }
+  .text-blue-500 {
+    color: var(--color-blue-500);
   }
   .filter {
     filter: var(--tw-blur,) var(--tw-brightness,) var(--tw-contrast,) var(--tw-grayscale,) var(--tw-hue-rotate,) var(--tw-invert,) var(--tw-saturate,) var(--tw-sepia,) var(--tw-drop-shadow,);
@@ -622,11 +634,43 @@
       }
     }
   }
+  .hover\:text-blue-500\/75 {
+    &:hover {
+      @media (hover: hover) {
+        color: color-mix(in oklab, var(--color-blue-500) 75%, transparent);
+      }
+    }
+  }
+  .hover\:text-blue-500\/100 {
+    &:hover {
+      @media (hover: hover) {
+        color: color-mix(in oklab, var(--color-blue-500) 100%, transparent);
+      }
+    }
+  }
   .peer-checked\:hover\:bg-sky-300\/75 {
     &:is(:where(.peer):checked ~ *) {
       &:hover {
         @media (hover: hover) {
           background-color: color-mix(in oklab, var(--color-sky-300) 75%, transparent);
+        }
+      }
+    }
+  }
+  .hover\:\[\&\>\*\]\:fill-blue-500 {
+    &:hover {
+      @media (hover: hover) {
+        &>* {
+          fill: var(--color-blue-500);
+        }
+      }
+    }
+  }
+  .hover\:\[\&amp\;\&gt\;\*\]\:fill-blue-500 {
+    &:hover {
+      @media (hover: hover) {
+        &amp;&gt;* {
+          fill: var(--color-blue-500);
         }
       }
     }

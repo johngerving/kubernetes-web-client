@@ -17,10 +17,15 @@ templ FileList(files types.Files) {
 }
 
 templ File(file types.File, displayTopBorder bool) {
-    <div class={"w-full p-3 flex gap-2 hover:bg-slate-100 peer-checked:bg-sky-200 peer-checked:hover:bg-sky-300/75 transition-all border-slate-300 border-b",
+    <div class={"w-full h-12 flex justify-between hover:bg-slate-100 peer-checked:bg-sky-200 peer-checked:hover:bg-sky-300/75 transition-all border-slate-300 border-b",
         templ.KV(" border-t", displayTopBorder)
     }>
-        @FileIcon("h-6 fill-gray-500")
-        <p>{file.Name}</p>
+        <div class="m-3 flex gap-2">
+            @FileIcon("h-6 fill-gray-500")
+            <p>{file.Name}</p>
+        </div>
+        <a href="#" class="w-12 h-full hover:[&>*]:fill-blue-500 flex justify-center items-center">
+            @GoToIcon("h-6 fill-gray-700 transition-all")
+        </a>
     </div>
 }

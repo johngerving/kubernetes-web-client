@@ -5,7 +5,7 @@ import (
 )
 
 templ Index() {
-    @templates.Page("Web Client") {
+    @templates.Page("Web Client", "/") {
         <h1 class="text-xl m-3">Files</h1> 
         <div hx-get="/files" hx-trigger="load" hx-swap="outerHTML"></div>
     }

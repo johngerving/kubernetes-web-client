@@ -1,6 +1,6 @@
 package templates
 
-templ Page(title string) {
+templ Page(title string, href templ.SafeURL) {
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -10,10 +10,11 @@ templ Page(title string) {
         <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
         <script src="/static/js/index.js"></script>
         <script src="/static/js/htmx.min.js"></script>
+        <script src="/static/js/htmx-ext-preload.js"></script>
         <title>{title}</title>
     </head>
-    <body hx-boost="true" class="flex w-screen h-screen">
-        @Sidebar()
+    <body hx-boost="true" hx-ext="preload" class="flex w-screen h-screen">
+        @Sidebar(href)
         <main class="w-full h-full">{ children... }</main>
     </body>
     </html>

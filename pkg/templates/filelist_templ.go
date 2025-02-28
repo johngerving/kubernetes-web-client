@@ -119,7 +119,7 @@ func File(file types.File, displayTopBorder bool) templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		var templ_7745c5c3_Var6 = []any{"w-full p-3 flex gap-2 hover:bg-slate-100 peer-checked:bg-sky-200 peer-checked:hover:bg-sky-300/75 transition-all border-slate-300 border-b",
+		var templ_7745c5c3_Var6 = []any{"w-full h-12 flex justify-between hover:bg-slate-100 peer-checked:bg-sky-200 peer-checked:hover:bg-sky-300/75 transition-all border-slate-300 border-b",
 			templ.KV(" border-t", displayTopBorder)}
 		templ_7745c5c3_Err = templ.RenderCSSItems(ctx, templ_7745c5c3_Buffer, templ_7745c5c3_Var6...)
 		if templ_7745c5c3_Err != nil {
@@ -138,7 +138,7 @@ func File(file types.File, displayTopBorder bool) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\">")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 9, "\"><div class=\"m-3 flex gap-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -153,13 +153,21 @@ func File(file types.File, displayTopBorder bool) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(file.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/filelist.templ`, Line: 24, Col: 21}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `pkg/templates/filelist.templ`, Line: 25, Col: 25}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</p></div>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 11, "</p></div><a href=\"#\" class=\"w-12 h-full hover:[&amp;&gt;*]:fill-blue-500 flex justify-center items-center\">")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = GoToIcon("h-6 fill-gray-700 transition-all").Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 12, "</a></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
