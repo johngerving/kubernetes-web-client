@@ -39,21 +39,35 @@ func (a *App) registerRoutes() (*echo.Echo, error) {
 		},
 	}))
 
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			c.Response().Header().Set("Cache-Control", "private, max-age=5")
+
+			if err := next(c); err != nil {
+				c.Error(err)
+			}
+
+			return nil
+		}
+	})
+
 	// Register page routes - these serve HTML
 	err := a.registerPageRoutes(e)
 	if err != nil {
 		return nil, err
 	}
 
-	// Register all other routes
-	e.GET("/files", handler.FilesGET(a.config.uploadDir))
+	// Register non-page routes
+	e.GET("/files/contents", handler.FileContentsGET(a.config.uploadDir))
+	e.GET("/files/contents/:file", handler.FileContentsGET(a.config.uploadDir))
 
 	return e, nil
 }
 
 // registerPageRoutes registers routes for HTML pages
 func (a *App) registerPageRoutes(e *echo.Echo) error {
-	e.GET("/", handler.IndexPageGET())
+	e.GET("/home", handler.IndexPageGET())
+	e.GET("/home/:file", handler.IndexPageGET())
 	e.GET("/upload", handler.UploadPageGET())
 
 	return nil

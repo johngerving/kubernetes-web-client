@@ -2,7 +2,9 @@ package handler
 
 import (
 	"context"
+	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/johngerving/kubernetes-web-client/pkg/templates"
 	"github.com/johngerving/kubernetes-web-client/pkg/types"
@@ -10,29 +12,37 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-// GET /
+// GET /home/:file
 func IndexPageGET() echo.HandlerFunc {
 	return func(c echo.Context) error {
-		return views.Index().Render(context.Background(), c.Response().Writer)
+		file := c.Param("file")
+		contentParam := ""
+		if file != "" {
+			contentParam = "/" + file
+		}
+		return views.Index(contentParam).Render(context.Background(), c.Response().Writer)
 	}
 }
 
-// GET /files
-func FilesGET(uploadDir string) echo.HandlerFunc {
+// GET /files/contents/:file
+func FileContentsGET(uploadDir string) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		files, err := getFiles(uploadDir)
+		file := c.Param("file")
+
+		contents, err := getFileContents(uploadDir, file)
 		if err != nil {
 			return err
 		}
 
-		return templates.FileList(files).Render(context.Background(), c.Response().Writer)
+		return templates.FileList(contents).Render(context.Background(), c.Response().Writer)
 	}
 }
 
-// getFiles returns a list of Files in a given directory and an
+// getFileContents returns a list of Files in a given directory and an
 // error if unsuccessful.
-func getFiles(dir string) (types.Files, error) {
-	dirEntries, err := os.ReadDir(dir)
+func getFileContents(baseDir, file string) (types.Files, error) {
+	fmt.Println(filepath.Join(baseDir, file))
+	dirEntries, err := os.ReadDir(filepath.Join(baseDir, file))
 
 	if err != nil {
 		return nil, err

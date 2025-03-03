@@ -12,5 +12,10 @@
   "devDependencies": {
     "esbuild": "^0.25.0",
     "typescript": "^5.7.3"
+  },
+  "dependencies": {
+    "@uppy/core": "^4.4.2",
+    "@uppy/dashboard": "^4.3.2",
+    "@uppy/tus": "^4.2.2"
   }
 }

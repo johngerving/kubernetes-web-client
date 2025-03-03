@@ -2,11 +2,12 @@ package views
 
 import (
     "github.com/johngerving/kubernetes-web-client/pkg/templates"
+    "fmt"
 )
 
-templ Index() {
+templ Index(contentParam string) {
     @templates.Page("Web Client", "/") {
         <h1 class="text-xl m-3">Files</h1> 
-        <div hx-get="/files" hx-trigger="load" hx-swap="outerHTML"></div>
+        <div hx-get={fmt.Sprintf("/files/contents%v", contentParam)} hx-trigger="load" hx-swap="outerHTML"></div>
     }
 }

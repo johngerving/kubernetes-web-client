@@ -29,7 +29,7 @@ func Page(title string, href templ.SafeURL) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><link rel=\"stylesheet\" href=\"/static/css/output.css\" type=\"text/css\"><link rel=\"stylesheet\" href=\"https://rsms.me/inter/inter.css\"><script src=\"/static/js/index.js\"></script><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx-ext-preload.js\"></script><title>")
+		templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><link rel=\"stylesheet\" href=\"/static/css/output.css\" type=\"text/css\"><link rel=\"stylesheet\" href=\"https://rsms.me/inter/inter.css\"><link href=\"https://releases.transloadit.com/uppy/v4.13.2/uppy.min.css\" rel=\"stylesheet\"><script src=\"/static/js/htmx.min.js\"></script><script src=\"/static/js/htmx-ext-preload.js\"></script><title>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

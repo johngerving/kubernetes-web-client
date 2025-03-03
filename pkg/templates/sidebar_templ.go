@@ -16,7 +16,7 @@ type page struct {
 var pages = [...]page{
 	{
 		name: "Home",
-		href: "/",
+		href: "/home",
 	},
 	{
 		name: "Upload",

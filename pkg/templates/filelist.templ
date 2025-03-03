@@ -17,15 +17,21 @@ templ FileList(files types.Files) {
 }
 
 templ File(file types.File, displayTopBorder bool) {
-    <div class={"w-full h-12 flex justify-between hover:bg-slate-100 peer-checked:bg-sky-200 peer-checked:hover:bg-sky-300/75 transition-all border-slate-300 border-b",
+    <div preload="mouseover" class={"w-full h-12 flex justify-between hover:bg-slate-100 peer-checked:bg-sky-200 peer-checked:hover:bg-sky-300/75 transition-all border-slate-300 border-b",
         templ.KV(" border-t", displayTopBorder)
     }>
         <div class="m-3 flex gap-2">
-            @FileIcon("h-6 fill-gray-500")
-            <p>{file.Name}</p>
+            if file.IsDir {
+                @FolderIcon("h-6 -translate-x-1.5 fill-gray-500")
+            } else {
+                @FileIcon("h-6 fill-gray-500")
+            }
+            <p class="grow overflow-ellipsis">{file.Name}</p>
         </div>
-        <a href="#" class="w-12 h-full hover:[&>*]:fill-blue-500 flex justify-center items-center">
-            @GoToIcon("h-6 fill-gray-700 transition-all")
-        </a>
+        if file.IsDir {
+            <a href={ templ.URL(fmt.Sprintf("/home/%v", file.Name)) } class="w-12 h-full hover:[&>*]:fill-blue-500 flex justify-center items-center">
+                @GoToIcon("h-6 fill-gray-700 transition-all")
+            </a>
+        }
     </div>
 }

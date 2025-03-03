@@ -43,7 +43,7 @@ func Upload() templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<!-- 1. Add CSS to `<head>` --> <link href=\"https://releases.transloadit.com/uppy/v4.13.2/uppy.min.css\" rel=\"stylesheet\"><!-- 2. Initialize --> <div class=\"w-full h-full flex justify-center items-center\"><div id=\"uppy\" class=\"\"></div></div><script type=\"module\">\n        import { Uppy, Dashboard, Tus } from \"https://releases.transloadit.com/uppy/v4.13.2/uppy.min.mjs\"\n        const uppy = new Uppy({\n            onBeforeUpload: (file) => {\n                console.log(file);\n            }\n        })\n        uppy.use(Dashboard, { target: '#uppy', inline: true, fileManagerSelectionType: 'both' }).use(Tus, {endpoint: 'http://localhost:8081/uploads/'})\n        </script>")
+			templ_7745c5c3_Err = templruntime.WriteString(templ_7745c5c3_Buffer, 1, "<div class=\"w-full h-full flex justify-center items-center\"><div id=\"uppy\" class=\"\"></div><script src=\"/static/js/index.js\"></script></div>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
